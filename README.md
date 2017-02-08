@@ -23,19 +23,20 @@ You should be able to install those with
 $ pip install -r requirements.txt
 ```
 
-### Run slackbot
+### Run the slackbot
 
-To get Bot Token from oauth link:
+```bash
+$ npm run slackbot
+```
+
+To get a new token from oauth link:
 https://slack.com/oauth/authorize?scope=bot&client_id=24629294631.139251260599
 
 ```bash
 $ npm run get_token
 ```
 
-Then set the token in the settings.json file.
-
-And to run Slackbot
-
-```bash
-$ npm run slackbot
-```
+1) Run the app
+2) Authorize the application
+3) Look at the console
+4) Set the bot_access_token in the settings.json file
