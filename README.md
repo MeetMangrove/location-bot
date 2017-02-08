@@ -22,3 +22,9 @@ You should be able to install those with
 ```bash
 $ pip install -r requirements.txt
 ```
+
+### Run slackbot
+
+```bash
+$ npm run start
+```
