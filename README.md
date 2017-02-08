@@ -22,3 +22,20 @@ You should be able to install those with
 ```bash
 $ pip install -r requirements.txt
 ```
+
+### Run slackbot
+
+To get Bot Token from oauth link:
+https://slack.com/oauth/authorize?scope=bot&client_id=24629294631.139251260599
+
+```bash
+$ npm run get_token
+```
+
+Then set the token in the settings.json file.
+
+And to run Slackbot
+
+```bash
+$ npm run slackbot
+```
