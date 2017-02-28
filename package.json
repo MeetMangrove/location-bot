@@ -2,6 +2,7 @@
   "name": "mangrove-pairing",
   "private": true,
   "scripts": {
+    "start":  "babel-node slackbot.js",
     "slackbot": "babel-node slackbot.js",
     "get_token": "babel-node get_token.js"
   },
