@@ -7,9 +7,6 @@ import jsonfile from 'jsonfile';
 import Airtable from 'airtable';
 
 const settings = jsonfile.readFileSync('settings.json');
-const controller = Botkit.slackbot({
-  debug: false
-});
 
 Airtable.configure({
   endpointUrl: 'https://api.airtable.com',
@@ -17,6 +14,17 @@ Airtable.configure({
 });
 
 const base = Airtable.base(settings.airtable_base_key);
+const controller = Botkit.slackbot({
+  debug: false,
+  interactive_replies: true
+});
+
+controller.setupWebserver(process.env.port,function(err,webserver) {
+  controller
+    .createHomepageEndpoint(controller.webserver)
+    .createOauthEndpoints(controller.webserver,function(err,req,res) { ... })
+    .createWebhookEndpoints(controller.webserver);
+});
 
 controller.spawn({
   token: settings.bot_access_token,
@@ -28,24 +36,18 @@ controller.hears('hello', ['direct_message', 'direct_mention', 'mention'], (bot,
 
 controller.hears('show mangrove friends', ['direct_message', 'direct_mention', 'mention'], (bot, message) => {
   base('P2PL Tests').select({
-    // Selecting the first 3 records in Main View:
     maxRecords: 150,
     view: "Main View",
   }).eachPage(function page(records, fetchNextPage) {
-    // This function (`page`) will get called for each page of records.
-
-    records.forEach(function(record) {
+    records.forEach(function (record) {
       bot.reply(message, record.get('Name'));
-      console.log('Retrieved', record.get('Name'));
     });
-
-    // To fetch the next page of records, call `fetchNextPage`.
-    // If there are more records, `page` will get called again.
-    // If there are no more records, `done` will get called.
     fetchNextPage();
-
   }, function done(err) {
-    if (err) { console.error(err); return; }
+    if (err) {
+      console.error(err);
+      return;
+    }
   });
 });
 
@@ -55,8 +57,8 @@ controller.hears('show P2PL applicants', ['direct_message', 'direct_mention', 'm
     view: "Main View",
     fields: ["Name", "Interests", "Skills"]
   }).eachPage(function page(records, fetchNextPage) {
-    records.forEach(function(record) {
-      if(record.get('Interests') && record.get('Skills')){
+    records.forEach(function (record) {
+      if (record.get('Interests') && record.get('Skills')) {
         bot.reply(message, {
           'text': `:sparkles: _${record.get('Name')}_ :sparkles:`,
           'attachments': [
@@ -75,8 +77,69 @@ controller.hears('show P2PL applicants', ['direct_message', 'direct_mention', 'm
       }
     });
     fetchNextPage();
-
   }, function done(err) {
-    if (err) { console.error(err); return; }
+    if (err) {
+      console.error(err);
+      return;
+    }
   });
+});
+
+controller.hears('feedback', 'direct_message', function (bot, message) {
+  bot.startConversation(message, function (err, convo) {
+    convo.ask({
+        attachments: [
+          {
+            title: 'Hey you ! I\'ve you done your last pairing ? ',
+            callback_id: '123',
+            attachment_type: 'default',
+            actions: [
+              {
+                "name": "yes",
+                "text": "Yes",
+                "value": "yes",
+                "type": "button",
+              },
+              {
+                "name": "no",
+                "text": "No",
+                "value": "no",
+                "type": "button",
+              }
+            ]
+          }
+        ]
+      },
+      [
+        {
+          pattern: 'yes',
+          callback: function (response, convo) {
+            convo.say('Great! I will continue...');
+            // do something else...
+            convo.next();
+
+          }
+        },
+        {
+          pattern: 'no',
+          callback: function (response, convo) {
+            convo.say('Perhaps later.');
+            // do something else...
+            convo.next();
+          }
+        },
+        {
+          default: true,
+          callback: function (response, convo) {
+            // just repeat the question
+            convo.repeat();
+            convo.next();
+          }
+        }
+      ]
+    )
+    ;
+
+  })
+
 });
