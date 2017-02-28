@@ -27,10 +27,10 @@ controller.hears('hello', ['direct_message', 'direct_mention', 'mention'], (bot,
 });
 
 controller.hears('show mangrove friends', ['direct_message', 'direct_mention', 'mention'], (bot, message) => {
-  base('Members').select({
+  base('P2PL Tests').select({
     // Selecting the first 3 records in Main View:
     maxRecords: 150,
-    view: settings.airtable_p2pl_test_view,
+    view: "Main View",
   }).eachPage(function page(records, fetchNextPage) {
     // This function (`page`) will get called for each page of records.
 
@@ -50,7 +50,7 @@ controller.hears('show mangrove friends', ['direct_message', 'direct_mention', '
 });
 
 controller.hears('show P2PL applicants', ['direct_message', 'direct_mention', 'mention'], (bot, message) => {
-  base('Members').select({
+  base('P2PL Tests').select({
     maxRecords: 150,
     view: "Main View",
     fields: ["Name", "Interests", "Skills"]

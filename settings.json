@@ -3,6 +3,5 @@
   "slack_client_secret": "16cb78b28b7e0129cf9d47b76bb632c3",
   "bot_access_token": "xoxb-138761620196-qHSxmO8wAvOIeXGqQPRXziqg",
   "airtable_api_key": "keyqnZFJLYUXSgo93",
-  "airtable_base_key": "appHUSN6KmmkMAgV7",
-  "airtable_p2pl_test_view": "viwpOFtRHzWsCvBxA"
+  "airtable_base_key": "appHUSN6KmmkMAgV7"
 }
