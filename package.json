@@ -2,12 +2,13 @@
   "name": "mangrove-pairing",
   "private": true,
   "scripts": {
-    "start":  "babel-node slackbot.js",
-    "slackbot": "babel-node slackbot.js",
-    "get_token": "babel-node get_token.js"
+    "start": "./node_modules/.bin/babel-node slackbot.js",
+    "slackbot": "./node_modules/.bin/babel-node slackbot.js",
+    "get_token": "./node_modules/.bin/babel-node get_token.js"
   },
   "dependencies": {
     "airtable": "^0.4.4",
+    "babel-cli": "^6.23.0",
     "botkit": "^0.4.10",
     "express": "^4.14.1",
     "jsonfile": "^2.4.0",
