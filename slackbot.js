@@ -13,6 +13,7 @@ Airtable.configure({
   apiKey: settings.airtable_api_key
 });
 
+const port = process.env.PORT || 3000;
 const base = Airtable.base(settings.airtable_base_key);
 const controller = Botkit.slackbot({
   debug: false,
@@ -26,13 +27,13 @@ controller.configureSlackApp({
   scopes: ['bot']
 });
 
-controller.setupWebserver(process.env.port || 3000,function(err,webserver) {
+controller.setupWebserver(port, function(err, webserver) {
   controller
-    .createHomepageEndpoint(controller.webserver)
-    .createOauthEndpoints(controller.webserver,function(err,req,res) {
+    .createHomepageEndpoint(webserver)
+    .createOauthEndpoints(webserver,function(err,req,res) {
       res.send(':)');
     })
-    .createWebhookEndpoints(controller.webserver);
+    .createWebhookEndpoints(webserver);
 });
 
 controller.spawn({
