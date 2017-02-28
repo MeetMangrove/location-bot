@@ -30,7 +30,7 @@ controller.hears('show mangrove friends', ['direct_message', 'direct_mention', '
   base('Members').select({
     // Selecting the first 3 records in Main View:
     maxRecords: 150,
-    view: "Main View"
+    view: settings.airtable_p2pl_test_view,
   }).eachPage(function page(records, fetchNextPage) {
     // This function (`page`) will get called for each page of records.
 
