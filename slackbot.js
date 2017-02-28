@@ -19,10 +19,19 @@ const controller = Botkit.slackbot({
   interactive_replies: true
 });
 
-controller.setupWebserver(process.env.port,function(err,webserver) {
+controller.configureSlackApp({
+  clientId: settings.slack_client_id,
+  clientSecret: settings.slack_client_secret,
+  redirectUri: 'https://mangrove-pairing.herokuapp.com/',
+  scopes: ['bot']
+});
+
+controller.setupWebserver(process.env.port || 3000,function(err,webserver) {
   controller
     .createHomepageEndpoint(controller.webserver)
-    .createOauthEndpoints(controller.webserver,function(err,req,res) { ... })
+    .createOauthEndpoints(controller.webserver,function(err,req,res) {
+      res.send(':)');
+    })
     .createWebhookEndpoints(controller.webserver);
 });
 
