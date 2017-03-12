@@ -19,7 +19,10 @@
 import sys, csv
 import networkx as nx
 import matplotlib.pyplot as plt
-
+import time
+import json
+import pandas as pd
+from airtable.airtable import Airtable
 
 # Parsing the input CSV file exported from Google Spreadsheets
 # TODO: this part is tied to the current structure of the spreadsheet,
@@ -29,55 +32,66 @@ import matplotlib.pyplot as plt
 #   Alice,learns,Javascript
 #   Bob,teaches,Python
 
-if len(sys.argv) < 2:
-    print("Usage: python pairing.py path/to/file.csv")
-    exit(1)
-with open(sys.argv[1]) as csvfile:
-    rows = list(csv.reader(csvfile))
 
-skills = None
-interests = None
 
-ppl = set()
-masters_by_skill = {}
-learners_by_skill = {}
-skills_by_master = {}
-skills_by_learner = {}
+with open('settings.json') as settings_file:
+    settings = json.load(settings_file)
 
-# given a dictionary d, initializes d[k] to an empty list and appends v to it
-def append_to_list_at_key(d, k, v):
-    if d.get(k) is None:
-        d[k] = []
-    d[k].append(v)
-    return d
+at = Airtable(settings["airtable_base_key"],settings["airtable_api_key"])
+table = at.get("P2PL Tests")
+
+
+# if len(sys.argv) < 2:
+#     print("Usage: python pairing.py path/to/file.csv")
+#     exit(1)
+# with open(sys.argv[1]) as csvfile:
+#     rows = list(csv.reader(csvfile))
+
+
+
+# skills = None
+# interests = None
+
+# ppl = set()
+# masters_by_skill = {}
+# learners_by_skill = {}
+# skills_by_master = {}
+# skills_by_learner = {}
+
+# # given a dictionary d, initializes d[k] to an empty list and appends v to it
+# def append_to_list_at_key(d, k, v):
+#     if d.get(k) is None:
+#         d[k] = []
+#     d[k].append(v)
+#     return d
 
 # removes prefix from string
 def remove_prefix(text, prefix):
     return text[text.startswith(prefix) and len(prefix):]
 
-i = 0
-for row in rows:
-    if i == 0:
-        # row 0 gives what people want to learn
-        interests = row
-    elif i == 13:
-        # row 13 gives what people can teach
-        # TODO: this will break when the spreadsheet changes...
-        skills = row
-    else:
-        j = 0
-        for person in row:
-            if isinstance(person, str) and len(person) > 0:
-                person = remove_prefix(person, "@").lower()
-                ppl.add(person)
-                if skills is not None:
-                    append_to_list_at_key(masters_by_skill, skills[j], person)
-                    append_to_list_at_key(skills_by_master, person, skills[j])
-                elif interests is not None:
-                    append_to_list_at_key(learners_by_skill, interests[j], person)
-                    append_to_list_at_key(skills_by_learner, person, interests[j])
-            j += 1
-    i += 1
+# i = 0
+# for row in rows:
+#     if i == 0:
+#         # row 0 gives what people want to learn
+#         interests = row
+#     elif i == 13:
+#         # row 13 gives what people can teach
+#         # TODO: this will break when the spreadsheet changes...
+#         skills = row
+#     else:
+#         j = 0
+#         for person in row:
+#             if isinstance(person, str) and len(person) > 0:
+#                 person = remove_prefix(person, "@").lower()
+#                 ppl.add(person)
+#                 if skills is not None:
+#                     append_to_list_at_key(masters_by_skill, skills[j], person)
+#                     append_to_list_at_key(skills_by_master, person, skills[j])
+#                 elif interests is not None:
+#                     append_to_list_at_key(learners_by_skill, interests[j], person)
+#                     append_to_list_at_key(skills_by_learner, person, interests[j])
+#             j += 1
+#     i += 1
 
 
 # Some logs for debugging/inspecting
@@ -88,6 +102,45 @@ for row in rows:
 
 
 # Building the graph
+
+## Get a dataframe of records for interests and skills
+records = pd.DataFrame([table["records"][j]["fields"] for j in range(len(table["records"]))]).set_index("Slack Handle")
+records = records[["Interests", "Skills"]]
+
+## Get dataframe of skilled and interested with dummies for each skill/interest
+interestedLists = records["Interests"].dropna()
+skilledLists = records["Skills"].dropna()
+interested = pd.get_dummies(interestedLists.apply(pd.Series).stack()).sum(level=0)
+skilled = pd.get_dummies(skilledLists.apply(pd.Series).stack()).sum(level=0)
+
+## Get dictionary with key skill and value list of learners
+learners_by_skill = {}
+for column in interested.columns:
+    learners_by_skill[column] = list(interested[interested[column] == 1].index)
+
+## Get dictionary with key skill and value list of masters
+masters_by_skill = {}
+for column in skilled.columns:
+    masters_by_skill[column] = list(skilled[skilled[column] == 1].index)
+
+## Get dictionary with key master and value list of skills
+skills_by_master = {}
+for index, row in skilled.iterrows():
+    skills_by_master[index] = list(skilled.transpose()[skilled.transpose()[index] == 1].index)
+
+## Get dictionary with key learner and value list of skills
+skills_by_learner = {}
+for index, row in interested.iterrows():
+    skills_by_learner[index] = list(interested.transpose()[interested.transpose()[index] == 1].index)
+
+
+
+import networkx as nx
+from networkx.algorithms import bipartite
+
+allSkills = set(list(list(learners_by_skill.keys()) + list(masters_by_skill)))
+allPeople = set(list(list(skills_by_learner.keys()) + list(skills_by_master)))
+
 
 g = nx.DiGraph()
 for skill, masters in masters_by_skill.items():
@@ -120,8 +173,13 @@ maxmatch = nx.algorithms.matching.maximal_matching(g.to_undirected())
 # Pretty-print output
 # TODO: return a result in JSON or CSV format
 
+# Pretty-print output
+# TODO: return a result in JSON or CSV format
+
+today = time.strftime("%d/%m/%Y")
+
 paired_count = len(maxmatch)
-print("Pairs generated: %s/%s" % (paired_count, len(ppl)))
+print("Pairs generated: %s/%s" % (paired_count, len(allPeople)))
 matched = set()
 print("Pairing:")
 for (a,b) in maxmatch:
@@ -136,6 +194,20 @@ for (a,b) in maxmatch:
     ls = set(skills_by_learner.get(lp, []))
     common = ts.intersection(ls)
     print("%s teaching %s about '%s'" % (tp, lp,"' or '".join(list(common))))
-if paired_count < len(ppl):
+    at.create("Pairings", {
+        "Teacher": tp,
+        "Learner": lp,
+        "Skill": str(list(common)[0]),
+        "Paired On": today
+    })
+if paired_count < len(allPeople):
     print("People left out:")
-    print(ppl.difference(matched))
+    leftOut = allPeople.difference(matched)
+    print(leftOut)
+    for p in leftOut:
+        at.create("Pairings", {
+            "Teacher": p,
+            "Learner": p,
+            "Not Paired": True,
+            "Paired On": today
+        })
