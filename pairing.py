@@ -15,96 +15,27 @@
 # "maximal matching" in the graph, which is a well-known problem in graph theory
 # see https://en.wikipedia.org/wiki/Matching_(graph_theory)
 
-
-import sys, csv
 import networkx as nx
 import matplotlib.pyplot as plt
 import time
 import json
 import pandas as pd
-from airtable.airtable import Airtable
-
-# Parsing the input CSV file exported from Google Spreadsheets
-# TODO: this part is tied to the current structure of the spreadsheet,
-# which is not great and should be changed.
-# A much more robust, easier to parse structure would be:
-#   person,learns_or_teaches,skill
-#   Alice,learns,Javascript
-#   Bob,teaches,Python
+import airtable
 
 
 
 with open('settings.json') as settings_file:
     settings = json.load(settings_file)
 
-at = Airtable(settings["airtable_base_key"],settings["airtable_api_key"])
-table = at.get("P2PL Tests")
-
-
-# if len(sys.argv) < 2:
-#     print("Usage: python pairing.py path/to/file.csv")
-#     exit(1)
-# with open(sys.argv[1]) as csvfile:
-#     rows = list(csv.reader(csvfile))
-
-
-
-# skills = None
-# interests = None
-
-# ppl = set()
-# masters_by_skill = {}
-# learners_by_skill = {}
-# skills_by_master = {}
-# skills_by_learner = {}
-
-# # given a dictionary d, initializes d[k] to an empty list and appends v to it
-# def append_to_list_at_key(d, k, v):
-#     if d.get(k) is None:
-#         d[k] = []
-#     d[k].append(v)
-#     return d
+at = airtable.AT(settings["airtable_base_key"],settings["airtable_api_key"])
+records = at.getTable("P2PL Tests")
 
 # removes prefix from string
 def remove_prefix(text, prefix):
     return text[text.startswith(prefix) and len(prefix):]
 
-# i = 0
-# for row in rows:
-#     if i == 0:
-#         # row 0 gives what people want to learn
-#         interests = row
-#     elif i == 13:
-#         # row 13 gives what people can teach
-#         # TODO: this will break when the spreadsheet changes...
-#         skills = row
-#     else:
-#         j = 0
-#         for person in row:
-#             if isinstance(person, str) and len(person) > 0:
-#                 person = remove_prefix(person, "@").lower()
-#                 ppl.add(person)
-#                 if skills is not None:
-#                     append_to_list_at_key(masters_by_skill, skills[j], person)
-#                     append_to_list_at_key(skills_by_master, person, skills[j])
-#                 elif interests is not None:
-#                     append_to_list_at_key(learners_by_skill, interests[j], person)
-#                     append_to_list_at_key(skills_by_learner, person, interests[j])
-#             j += 1
-#     i += 1
-
-
-# Some logs for debugging/inspecting
-# print("MASTERS", masters_by_skill)
-# print("LEARNERS", learners_by_skill)
-# print("BY LEARNER:", skills_by_learner)
-# print("BY MASTER:", skills_by_master)
-
-
-# Building the graph
-
 ## Get a dataframe of records for interests and skills
-records = pd.DataFrame([table["records"][j]["fields"] for j in range(len(table["records"]))]).set_index("Slack Handle")
+records = records.set_index("Slack Handle")
 records = records[["Interests", "Skills"]]
 
 ## Get dataframe of skilled and interested with dummies for each skill/interest
@@ -176,7 +107,7 @@ maxmatch = nx.algorithms.matching.maximal_matching(g.to_undirected())
 # Pretty-print output
 # TODO: return a result in JSON or CSV format
 
-today = time.strftime("%d/%m/%Y")
+today = time.strftime("%Y-%m-%d")
 
 paired_count = len(maxmatch)
 print("Pairs generated: %s/%s" % (paired_count, len(allPeople)))
@@ -193,19 +124,22 @@ for (a,b) in maxmatch:
     ts = set(skills_by_master.get(tp, []))
     ls = set(skills_by_learner.get(lp, []))
     common = ts.intersection(ls)
-    print("%s teaching %s about '%s'" % (tp, lp,"' or '".join(list(common))))
-    at.create("Pairings", {
+    # print("%s teaching %s about '%s'" % (tp, lp,"' or '".join(list(common))))
+
+    obj = {
         "Teacher": tp,
         "Learner": lp,
-        "Skill": str(list(common)[0]),
+        "Skill": ", ".join(list(common)),
         "Paired On": today
-    })
+    }
+    res = at.pushToTable("Pairings", obj)
+    # print(res)
 if paired_count < len(allPeople):
     print("People left out:")
     leftOut = allPeople.difference(matched)
     print(leftOut)
     for p in leftOut:
-        at.create("Pairings", {
+        at.pushToTable("Pairings", {
             "Teacher": p,
             "Learner": p,
             "Not Paired": True,
