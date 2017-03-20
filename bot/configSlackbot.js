@@ -3,31 +3,30 @@
  */
 
 import Botkit from 'botkit';
-import jsonfile from 'jsonfile';
 import Airtable from 'airtable';
+require('dotenv').config();
 
-const settings = jsonfile.readFileSync('settings.json');
+const { env: { SLACK_BOT_TOKEN, SLACK_CLIENT_ID, SLACK_CLIENT_SECRET, AIRTABLE_API_KEY, AIRTABLE_BASE_KEY, PORT_BOT }} = process;
 
 Airtable.configure({
   endpointUrl: 'https://api.airtable.com',
-  apiKey: settings.airtable_api_key
+  apiKey: AIRTABLE_API_KEY
 });
 
-const { port_bot } = settings;
-const base = Airtable.base(settings.airtable_base_key);
+const base = Airtable.base(AIRTABLE_BASE_KEY);
 const controller = Botkit.slackbot({
   debug: false,
   interactive_replies: true
 });
 
 controller.configureSlackApp({
-  clientId: settings.slack_client_id,
-  clientSecret: settings.slack_client_secret,
+  clientId: SLACK_CLIENT_ID,
+  clientSecret: SLACK_CLIENT_SECRET,
   redirectUri: 'https://mangrove-pairing.herokuapp.com/',
   scopes: ['bot']
 });
 
-controller.setupWebserver(port_bot, function (err, webserver) {
+controller.setupWebserver(PORT_BOT, function (err, webserver) {
   controller
     .createHomepageEndpoint(webserver)
     .createOauthEndpoints(webserver, function (err, req, res) {
@@ -37,7 +36,7 @@ controller.setupWebserver(port_bot, function (err, webserver) {
 });
 
 controller.spawn({
-  token: settings.bot_access_token,
+  token: SLACK_BOT_TOKEN,
 }).startRTM();
 
 controller.hears('show P2PL applicants', ['direct_message', 'direct_mention', 'mention'], (bot, message) => {

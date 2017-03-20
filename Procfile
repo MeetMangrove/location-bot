@@ -1,1 +1,1 @@
-worker: npm run slackbot
+worker: npm run start
