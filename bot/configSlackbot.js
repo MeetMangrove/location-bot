@@ -5,7 +5,6 @@
 import Botkit from 'botkit';
 import jsonfile from 'jsonfile';
 import Airtable from 'airtable';
-import { exec } from 'child_process';
 
 const settings = jsonfile.readFileSync('settings.json');
 
@@ -14,7 +13,7 @@ Airtable.configure({
   apiKey: settings.airtable_api_key
 });
 
-const port = process.env.PORT || 3000;
+const { port_bot } = settings;
 const base = Airtable.base(settings.airtable_base_key);
 const controller = Botkit.slackbot({
   debug: false,
@@ -28,7 +27,7 @@ controller.configureSlackApp({
   scopes: ['bot']
 });
 
-controller.setupWebserver(port, function (err, webserver) {
+controller.setupWebserver(port_bot, function (err, webserver) {
   controller
     .createHomepageEndpoint(webserver)
     .createOauthEndpoints(webserver, function (err, req, res) {

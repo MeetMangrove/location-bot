@@ -8,6 +8,7 @@ import jsonfile from 'jsonfile';
 
 const app = express();
 const settings = jsonfile.readFileSync('settings.json');
+const { port_api } = settings;
 
 app.get('/oauth/', function (req) {
   const { slack_client_id, slack_client_secret } = settings;
@@ -16,4 +17,4 @@ app.get('/oauth/', function (req) {
   });
 });
 
-app.listen(3000);
+app.listen(port_api);

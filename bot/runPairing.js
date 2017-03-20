@@ -2,9 +2,8 @@
  * Created by thomasjeanneau on 20/03/2017.
  */
 
-import { controller, base } from './slackbot';
-
-console.log('run');
+import { controller, base } from './configSlackbot';
+import { exec } from 'child_process';
 
 controller.hears("pair", "direct_message", function (bot, message) {
   const admins = [];
