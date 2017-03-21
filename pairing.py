@@ -29,6 +29,7 @@ with open('settings.json') as settings_file:
 
 at = airtable.AT(settings["airtable_base_key"],settings["airtable_api_key"])
 records = at.getTable("P2PL Tests")
+records = records[records["Active P2P"] == True]
 
 # removes prefix from string
 def remove_prefix(text, prefix):
