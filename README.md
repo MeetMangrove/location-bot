@@ -8,17 +8,29 @@ they want to learn.
 ### Generate a pairing
 
 ```bash
-$ python pairing.py data.csv
+$ python pairing.py
 ```
 
-Will compute a pairing from a CSV file (e.g. exported from Google Spreadsheets)
-and print it to standard output. See the source code for details.
+Will fetch the data from airtable for all freinds' interests and skills, generate pairings for them and push it to the Pairings table.
 
-You will need Python 3 installed
-(I recommend [Anaconda](https://www.continuum.io/downloads))
-with the `networkx` and `matplotlib` packages.
-You should be able to install those with
+You will need Python 3 installed and ideally use [conda](https://conda.io/miniconda.html))
 
+For the dev environment, once you have `conda` installed you can create an environment with all the dependencies
+by running:
+
+```bash
+conda env create -f environment.yml
+```
+
+You can activate that environment at any time using:
+
+```bash
+source activate pairing
+```
+
+There's more you can do with conda environments and you can read more on the [managing environments](https://conda.io/docs/using/envs.html) page.
+
+For production, we can install all dependencies from requirements.txt using:
 ```bash
 $ pip install -r requirements.txt
 ```
