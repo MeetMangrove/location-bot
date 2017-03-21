@@ -132,7 +132,7 @@ for (a,b) in maxmatch:
         "Skill": ", ".join(list(common)),
         "Paired On": today
     }
-    res = at.pushToTable("Pairings", obj)
+    res = at.pushToTable("Pairings", obj, typecast=True)
     # print(res)
 if paired_count < len(allPeople):
     print("People left out:")
