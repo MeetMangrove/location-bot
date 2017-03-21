@@ -18,4 +18,8 @@ class AT:
 		h = self.headers
 		h["Content-type"] =  "application/json"
 		r = requests.post("https://api.airtable.com/v0/"+self.base+"/"+table, headers=h, data=json.dumps({"fields": obj, "typecast": typecast}))
-		return r.json()
+		if r.status_code == requests.codes.ok:
+			return r.json()
+		else:
+			print(r.json)
+			return False
