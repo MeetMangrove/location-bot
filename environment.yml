@@ -30,7 +30,6 @@ dependencies:
 - xz=5.2.2=1
 - zlib=1.2.8=3
 - pip:
-  - airtable==0.3.1
   - appnope==0.1.0
   - bleach==2.0.0
   - entrypoints==0.2.2
