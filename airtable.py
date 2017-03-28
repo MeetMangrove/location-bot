@@ -14,8 +14,12 @@ class AT:
 		df = pd.DataFrame(dict(zip([i["id"] for i in j["records"]], [i["fields"] for i in j["records"]]))).transpose()
 		return df
 
-	def pushToTable(self, table, obj):
+	def pushToTable(self, table, obj, typecast=False):
 		h = self.headers
 		h["Content-type"] =  "application/json"
-		r = requests.post("https://api.airtable.com/v0/"+self.base+"/"+table, headers=h, data=json.dumps({"fields": obj}))
-		return r.json()
+		r = requests.post("https://api.airtable.com/v0/"+self.base+"/"+table, headers=h, data=json.dumps({"fields": obj, "typecast": typecast}))
+		if r.status_code == requests.codes.ok:
+			return r.json()
+		else:
+			print(r.json)
+			return False
