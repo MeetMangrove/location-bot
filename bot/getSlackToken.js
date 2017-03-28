@@ -4,17 +4,14 @@
 
 import express from 'express';
 import request from 'request';
-import jsonfile from 'jsonfile';
 
 const app = express();
-const settings = jsonfile.readFileSync('settings.json');
-const { port_api } = settings;
+const { env: { SLACK_CLIENT_ID, SLACK_CLIENT_SECRET, PORT_API }} = process;
 
 app.get('/oauth/', function (req) {
-  const { slack_client_id, slack_client_secret } = settings;
-  request.get('https://slack.com/api/oauth.access?client_id=' + slack_client_id + '&client_secret=' + slack_client_secret + '&code=' + req.query.code, function (error, result, body) {
+  request.get('https://slack.com/api/oauth.access?client_id=' + SLACK_CLIENT_ID + '&client_secret=' + SLACK_CLIENT_SECRET + '&code=' + req.query.code, function (error, result, body) {
     console.log(body);
   });
 });
 
-app.listen(port_api);
+app.listen(PORT_API);
