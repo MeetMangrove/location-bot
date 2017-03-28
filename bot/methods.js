@@ -23,7 +23,7 @@ export const checkIfAdmin = (bot, message) => {
           return;
         }
         bot.api.users.info({ user: message.user }, (error, response) => {
-          let { name, real_name } = response.user;
+          let { name } = response.user;
           resolve(admins.indexOf(name) >= 0);
         })
       });
