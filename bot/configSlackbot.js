@@ -16,14 +16,15 @@ Airtable.configure({
 const base = Airtable.base(AIRTABLE_BASE_KEY);
 const controller = Botkit.slackbot({
   debug: false,
-  interactive_replies: true
+  interactive_replies: true,
+  require_delivery: true
 });
 
 controller.configureSlackApp({
   clientId: SLACK_CLIENT_ID,
   clientSecret: SLACK_CLIENT_SECRET,
   redirectUri: 'https://mangrove-pairing.herokuapp.com/',
-  scopes: ['bot, users:read']
+  scopes: ['bot', 'users:read', 'groups:write']
 });
 
 controller.setupWebserver(PORT_BOT, function (err, webserver) {

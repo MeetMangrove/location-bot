@@ -27,7 +27,7 @@ controller.hears("introductions", "direct_message", function (bot, message) {
             users.push(find(list, ['name', record.get('Teacher')]));
             users.push(find(list, ['name', record.get('Learner')]));
             users.push(find(list, ['name', 'pairingbot']));
-            bot.api.usergroups.create({name: 'new paring !', users}, (err, data) => {
+            bot.api.groups.create({name: 'new paring !'}, (err, data) => {
               console.log(data);
             });
             console.log('Retrieved', record.get('Id'));
@@ -36,6 +36,7 @@ controller.hears("introductions", "direct_message", function (bot, message) {
         }, function done(err) {
           if (err) {
             console.error(err);
+            bot.reply(message, "An error occur: " + err.error);
           }
         });
       });

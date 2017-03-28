@@ -18,7 +18,7 @@ controller.hears("pair", ["direct_message"], function (bot, message) {
     checkIfAdmin(bot, message)
       .then((res) => {
         if (res) {
-          bot.reply(message, "Ok, I'll start introducing people");
+          bot.reply(message, "Ok, I'll start pairing people");
           PythonShell.run("pairing.py", options, function (error) {
             if (!error) {
               bot.reply(message, "Pairing complete. Results should be available in airtable. You can run 'introductions' to send a message to each pair.")
