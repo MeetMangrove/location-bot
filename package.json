@@ -13,8 +13,8 @@
     "botkit": "^0.4.10",
     "dotenv": "^4.0.0",
     "express": "^4.14.1",
-    "request": "^2.79.0",
-    "slack": "^8.2.6"
+    "lodash": "^4.17.4",
+    "request": "^2.79.0"
   },
   "devDependencies": {
     "babel-cli": "^6.22.2",
@@ -23,7 +23,7 @@
   },
   "description": "Automatically pair people based on the skills they can teach and those they want to learn.",
   "version": "1.0.0",
-  "main": "slackbot.js",
+  "main": "bot/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tjeanneau/mangrove-pairing.git"
