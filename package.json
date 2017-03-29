@@ -2,7 +2,7 @@
   "name": "mangrove-pairing",
   "private": true,
   "scripts": {
-    "start": "./node_modules/.bin/babel-node bot/index.js --copy-files pairing.py"
+    "start": "./node_modules/.bin/babel-node bot/index.js --copy-files pairing.py setting.json"
   },
   "dependencies": {
     "airtable": "^0.4.4",
@@ -11,8 +11,8 @@
     "babel-preset-stage-0": "^6.22.0",
     "bluebird": "^3.5.0",
     "botkit": "^0.4.10",
-    "dotenv": "^4.0.0",
     "express": "^4.14.1",
+    "jsonfile": "^2.4.0",
     "lodash": "^4.17.4",
     "python-shell": "^0.4.0",
     "request": "^2.79.0"
