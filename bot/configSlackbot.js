@@ -4,20 +4,23 @@
 
 import Botkit from 'botkit';
 import Airtable from 'airtable';
-require('dotenv').config();
+import jsonfile from 'jsonfile';
 
-const { env: { SLACK_BOT_TOKEN, SLACK_CLIENT_ID, SLACK_CLIENT_SECRET, AIRTABLE_API_KEY, AIRTABLE_BASE_KEY, PORT_BOT }} = process;
+const settings = jsonfile.readFileSync('settings.json');
+const { SLACK_BOT_TOKEN, SLACK_CLIENT_ID, SLACK_CLIENT_SECRET, AIRTABLE_API_KEY, AIRTABLE_BASE_KEY, PORT_BOT } = settings;
 
+console.log(settings);
+console.log(AIRTABLE_BASE_KEY);
 Airtable.configure({
   endpointUrl: 'https://api.airtable.com',
-  apiKey: AIRTABLE_API_KEY
+  apiKey: AIRTABLE_API_KEY,
 });
 
 const base = Airtable.base(AIRTABLE_BASE_KEY);
 const controller = Botkit.slackbot({
   debug: false,
   interactive_replies: true,
-  require_delivery: true
+  require_delivery: true,
 });
 
 controller.configureSlackApp({
