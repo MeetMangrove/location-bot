@@ -4,13 +4,10 @@
 
 import Botkit from 'botkit';
 import Airtable from 'airtable';
-import jsonfile from 'jsonfile';
+import settings from './settings';
 
-const settings = jsonfile.readFileSync('settings.json');
 const { SLACK_BOT_TOKEN, SLACK_CLIENT_ID, SLACK_CLIENT_SECRET, AIRTABLE_API_KEY, AIRTABLE_BASE_KEY, PORT_BOT } = settings;
 
-console.log(settings);
-console.log(AIRTABLE_BASE_KEY);
 Airtable.configure({
   endpointUrl: 'https://api.airtable.com',
   apiKey: AIRTABLE_API_KEY,

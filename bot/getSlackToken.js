@@ -4,10 +4,9 @@
 
 import express from 'express';
 import request from 'request';
-import jsonfile from 'jsonfile';
+import settings from './settings';
 
 const app = express();
-const settings = jsonfile.readFileSync('settings.json');
 const { SLACK_CLIENT_ID, SLACK_CLIENT_SECRET, PORT_API } = settings;
 
 app.get('/oauth/', function (req) {
