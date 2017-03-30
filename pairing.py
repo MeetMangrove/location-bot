@@ -27,7 +27,7 @@ import airtable
 with open('settings.json') as settings_file:
     settings = json.load(settings_file)
 
-at = airtable.AT(settings["airtable_base_key"],settings["airtable_api_key"])
+at = airtable.AT(settings["AIRTABLE_BASE_KEY"],settings["AIRTABLE_API_KEY"])
 records = at.getTable("P2PL Tests")
 records = records[records["Active P2P"] == True]
 
