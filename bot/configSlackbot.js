@@ -24,7 +24,7 @@ controller.configureSlackApp({
   clientId: SLACK_CLIENT_ID,
   clientSecret: SLACK_CLIENT_SECRET,
   redirectUri: 'https://mangrove-pairing.herokuapp.com/',
-  scopes: ['bot', 'chat:write:bot', 'groups:write', 'groups:read', 'groups:history', 'usergroups:write', 'usergroups:read', 'users:read', 'users:read.email']
+  scopes: ['bot', 'chat:write:bot', 'groups:history', 'groups:read', 'groups:write', 'users:read', 'users:read.email']
 });
 
 controller.setupWebserver(PORT_BOT, function (err, webserver) {

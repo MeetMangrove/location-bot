@@ -6,58 +6,79 @@ import pick from 'lodash/pick';
 import find from 'lodash/find';
 import map from 'lodash/map';
 import Promise from 'bluebird';
+import asyncForEach from 'async-foreach';
 
 import { controller, base } from './configSlackbot';
-import { checkIfAdmin } from './methods';
+import { checkIfAdmin, getGroupName } from './methods';
+import settings from './settings';
 
-let token = 'xoxp-24629294631-59006434455-162209015923-2a02d6b9b0424f935806e3ae0cae1ec4';
+const { SLACK_TOKEN: token } = settings;
+const { forEach } = asyncForEach;
 
-controller.hears("introductions", "direct_message", (bot, message) => {
+controller.hears("introductions", ["direct_message", "direct_mention"], (bot, message) => {
   try {
     (async () => {
       const isAdmin = await checkIfAdmin(bot, message);
       if (isAdmin) {
-        bot.reply(message, "Ok, I'll start introducing people");
+        bot.reply(message, "Ok, I'll start introducing people :sparkles: ");
         const apiUser = Promise.promisifyAll(bot.api.users);
         const apiGroups = Promise.promisifyAll(bot.api.groups);
+        const airtableUpdate = Promise.promisify(base('Pairings').update);
+        const botSay = Promise.promisify(bot.say);
         const { members } = await apiUser.listAsync({ token });
         const list = map(members, member => pick(member, ['id', 'name']));
         base('Pairings').select({
-          view: "Main View"
+          view: "Main View",
+          filterByFormula: "{Bot Introduction}=0"
         }).eachPage(function page(records, fetchNextPage) {
-          records.forEach(async (record) => {
-            const users = [];
-            const teacher = record.get('Teacher');
-            const learner = record.get('Learner');
-            users.push(find(list, ['name', record.get('Teacher')]));
-            users.push(find(list, ['name', record.get('Learner')]));
+          forEach(records, async function (record) {
+            const done = this.async();
+            const teacher = find(list, ['name', record.get('Teacher')]);
+            const learner = find(list, ['name', record.get('Learner')]);
+            const skill = record.get('Skill')[0];
             const { groups } = await apiGroups.listAsync({ token });
-            console.log('groupList: ', groups);
-            const { id: groupId } = find(groups, ['name', `p2pl-${teacher}-${learner}`]);
-            if (groupId) {
-              const groupsUnarchive = await apiGroups.unarchiveAsync({ token, channel: groupId });
-              console.log('groupsUnarchive: ', groupsUnarchive);
+            const groupName = await getGroupName(teacher.name, learner.name);
+            const group = find(groups, ['name', groupName]);
+            let groupId;
+            if (group) {
+              groupId = group.id;
+              if (group.is_archived === true) await apiGroups.unarchiveAsync({ token, channel: groupId });
             } else {
-              const groupsCreate = await apiGroups.createAsync({ token, name: `P2PL-${teacher}-${learner}` });
-              console.log('groupsCreate: ', groupsCreate);
+              const groupsCreate = await apiGroups.createAsync({ token, name: groupName });
+              groupId = groupsCreate.group.id;
             }
-            const groupsInvite1 = await apiGroups.inviteAsync({ token, channel: groupId, user: users[0].id });
-            console.log('groupsInvite1: ', groupsInvite1);
-            const groupsInvite2 = await apiGroups.inviteAsync({ token, channel: groupId, user: users[1].id });
-            console.log('groupsInvite2: ', groupsInvite2);
-            const groupsInvite3 = await apiGroups.inviteAsync({
+            if (teacher.id !== message.user) await apiGroups.inviteAsync({
               token,
               channel: groupId,
-              user: bot.identifyBot().id
+              user: teacher.id
             });
-            console.log('groupsInvite3: ', groupsInvite3);
-            console.log('Retrieved', record.get('Id'));
-          });
-          fetchNextPage();
+            if (learner.id !== message.user) await apiGroups.inviteAsync({
+              token,
+              channel: groupId,
+              user: learner.id
+            });
+            await apiGroups.inviteAsync({ token, channel: groupId, user: bot.identifyBot().id });
+            await airtableUpdate(record.id, { "Bot Introduction": true });
+            await botSay({
+              text: 'Hey guys ! I\'ve paired you this month :smile:',
+              channel: groupId
+            });
+            await botSay({
+              text: `${teacher.name}: ${learner.name} want to learn more about *${skill}*`,
+              channel: groupId
+            });
+            await botSay({
+              text: `I let you arrange a meeting together, let me know about the date :wink:`,
+              channel: groupId
+            });
+            done();
+          }, fetchNextPage);
         }, function done(err) {
           if (err) {
             console.error(err);
             bot.reply(message, "An error occur: " + err.error);
+          } else {
+            bot.reply(message, "All people have been introduced :rocket:");
           }
         });
       } else {
@@ -65,6 +86,7 @@ controller.hears("introductions", "direct_message", (bot, message) => {
       }
     })();
   } catch (e) {
+    bot.reply(message, "An error occur: " + e.error);
     console.log(e);
   }
 });
