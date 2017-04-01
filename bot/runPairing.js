@@ -13,7 +13,7 @@ const options = {
   scriptPath: './',
 };
 
-controller.hears("pair", ["direct_message"], function (bot, message) {
+controller.hears("pair", ["direct_message", "direct_mention"], function (bot, message) {
   try {
     checkIfAdmin(bot, message)
       .then((res) => {
