@@ -1,2 +1,2 @@
-worker: npm run build
+build: npm run build
 worker: npm run serve
