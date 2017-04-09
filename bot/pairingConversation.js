@@ -8,19 +8,17 @@ import map from 'lodash/map';
 import Promise from 'bluebird';
 import asyncForEach from 'async-foreach';
 
-import { controller, base } from './configSlackbot';
-import { checkIfAdmin, getGroupName } from './methods';
+import { base } from './configSlackbot';
+import { getGroupName } from './methods';
 import settings from './settings';
 
 const { SLACK_TOKEN: token } = settings;
 const { forEach } = asyncForEach;
 
-controller.hears("introductions", ["direct_message", "direct_mention"], (bot, message) => {
-  try {
-    (async () => {
-      const isAdmin = await checkIfAdmin(bot, message);
-      if (isAdmin) {
-        bot.reply(message, "Ok, I'll start introducing people :sparkles: ");
+export const pairingConversation = (bot, message) => {
+  return new Promise((resolve, reject) => {
+    try {
+      (async () => {
         const apiUser = Promise.promisifyAll(bot.api.users);
         const apiGroups = Promise.promisifyAll(bot.api.groups);
         const airtableUpdate = Promise.promisify(base('Pairings').update);
@@ -52,6 +50,7 @@ controller.hears("introductions", ["direct_message", "direct_mention"], (bot, me
               channel: groupId,
               user: teacher.id
             });
+
             if (learner.id !== message.user) await apiGroups.inviteAsync({
               token,
               channel: groupId,
@@ -64,7 +63,7 @@ controller.hears("introductions", ["direct_message", "direct_mention"], (bot, me
               channel: groupId
             });
             await botSay({
-              text: `${teacher.name}: ${learner.name} want to learn more about *${skill}*`,
+              text: `@${teacher.name}: @${learner.name} want to learn more about *${skill}*`,
               channel: groupId
             });
             await botSay({
@@ -74,19 +73,14 @@ controller.hears("introductions", ["direct_message", "direct_mention"], (bot, me
             done();
           }, fetchNextPage);
         }, function done(err) {
-          if (err) {
-            console.error(err);
-            bot.reply(message, "An error occur: " + err.error);
-          } else {
-            bot.reply(message, "All people have been introduced :rocket:");
-          }
+          if (err) reject();
+          resolve();
         });
-      } else {
-        bot.reply(message, "Sorry but it looks like you're not an admin. You can't use this feature.")
-      }
-    })();
-  } catch (e) {
-    bot.reply(message, "An error occur: " + e.error);
-    console.log(e);
-  }
-});
+      })();
+    } catch (e) {
+      console.log(e);
+      bot.reply(message, "An error occur: " + e.error);
+      reject(e);
+    }
+  });
+};
