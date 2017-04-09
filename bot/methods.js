@@ -4,6 +4,7 @@
 
 import Promise from 'bluebird';
 import { base } from './configSlackbot';
+import findIndex from 'lodash/findIndex';
 
 export const checkIfAdmin = (bot, message) => {
   return new Promise((resolve, reject) => {
@@ -24,6 +25,8 @@ export const checkIfAdmin = (bot, message) => {
         })
       });
     } catch (e) {
+      bot.reply(message, "An error occur: " + e);
+      console.log('checkIfAdmin', e);
       reject(e);
     }
   });
@@ -49,6 +52,68 @@ export const getGroupName = (teacher, learner) => {
         resolve(`p${number}_${teacher.substring(0, 8)}_${learner.substring(0, 8)}`);
       });
     } catch (e) {
+      console.log('getGroupName', e);
+      reject(e);
+    }
+  });
+};
+
+export const getAllMembers = () => {
+  return new Promise((resolve, reject) => {
+    try {
+      const p2plMembers = [];
+      base('P2PL Tests').select({
+        filterByFormula: "{Active P2P}=1"
+      }).eachPage(function page(records, fetchNextPage) {
+        records.forEach((record) => {
+          p2plMembers.push({
+            name: record["fields"]["Slack Handle"],
+            isLearner: false,
+            isTeacher: false,
+          })
+        });
+        fetchNextPage();
+      }, function done(err) {
+        if (err) reject(err);
+        resolve(p2plMembers);
+      });
+    } catch (e) {
+      console.log('getAllMembers', e);
+      reject(e);
+    }
+  });
+};
+
+export const getMembersPaired = () => {
+  return new Promise((resolve, reject) => {
+    try {
+      (async () => {
+        const members = await getAllMembers();
+        base('Pairings').select({
+          view: "Main View",
+          filterByFormula: "{Bot Introduction}=0"
+        }).eachPage(function page(records, fetchNextPage) {
+          records.forEach((record) => {
+            const learner = record.get('Learner');
+            const teacher = record.get('Teacher');
+            const skill = record.get('Skill');
+            const indexLearner = findIndex(members, e => e.name === learner);
+            const indexTeacher = findIndex(members, e => e.name === teacher);
+            members[indexLearner].isLearner = true;
+            members[indexLearner].teacherName = teacher;
+            members[indexLearner].learning = skill;
+            members[indexTeacher].isTeacher = true;
+            members[indexTeacher].learnerName = learner;
+            members[indexTeacher].teaching = skill;
+          });
+          fetchNextPage();
+        }, function done(err) {
+          if (err) reject(err);
+          resolve(members);
+        });
+      })();
+    } catch (e) {
+      console.log('getMembersPaired', e);
       reject(e);
     }
   });
