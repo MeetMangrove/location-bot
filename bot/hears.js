@@ -3,6 +3,7 @@
  */
 
 import PythonShell from 'python-shell';
+import Promise from 'bluebird';
 
 import { controller } from './configSlackbot';
 import { checkIfAdmin } from './methods';
@@ -18,19 +19,20 @@ const options = {
 controller.hears("pair", ["direct_message", "direct_mention"], function (bot, message) {
   try {
     (async () => {
+      const botReply = Promise.promisify(bot.reply);
       const isAdmin = await checkIfAdmin(bot, message);
       if (isAdmin) {
-        bot.reply(message, "Ok, I'll start pairing people");
-        PythonShell.run("pairing.py", options, function (error) {
+        await botReply(message, "Ok, I'll start pairing people");
+        PythonShell.run("pairing.py", options, async function (error) {
           if (!error) {
-            bot.reply(message, "Pairing complete. Results should be available in airtable. You can run 'introductions' to send a message to each pair.")
+            await botReply(message, "Pairing complete. Results should be available in airtable. You can run 'introductions' to send a message to each pair.")
           } else {
             console.log(error);
-            bot.reply(message, "An error occurred during pairing.")
+            await botReply(message, "An error occurred during pairing.")
           }
         })
       } else {
-        bot.reply(message, "Sorry but it looks like you're not an admin. You can't use this feature.")
+        await botReply(message, "Sorry but it looks like you're not an admin. You can't use this feature.")
       }
     })();
   } catch (e) {
@@ -41,14 +43,15 @@ controller.hears("pair", ["direct_message", "direct_mention"], function (bot, me
 controller.hears("introductions", ["direct_message", "direct_mention"], (bot, message) => {
   try {
     (async () => {
+      const botReply = Promise.promisify(bot.reply);
       const isAdmin = await checkIfAdmin(bot, message);
       if (isAdmin) {
-        bot.reply(message, "Ok, I'll start introducing people :sparkles: ");
-        await startAPairingSession(bot, message);
-        await pairingConversation(bot, message);
-        bot.reply(message, "All people have been introduced :rocket:");
+        await botReply(message, "Ok, I'll start introducing people :sparkles: ");
+        const membersPaired = await startAPairingSession(bot, message);
+        await pairingConversation(bot, message, membersPaired);
+        await botReply(message, "All people have been introduced :rocket:");
       } else {
-        bot.reply(message, "Sorry but it looks like you're not an admin. You can't use this feature.")
+        await botReply(message, "Sorry but it looks like you're not an admin. You can't use this feature.")
       }
     })();
   } catch (e) {
