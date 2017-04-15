@@ -102,7 +102,7 @@ export const startAPairingSession = (bot, message) => {
           }
           done();
         });
-        resolve();
+        resolve(membersPaired);
       })();
     } catch (e) {
       console.log(e);

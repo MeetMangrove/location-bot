@@ -47,8 +47,8 @@ controller.hears("introductions", ["direct_message", "direct_mention"], (bot, me
       const isAdmin = await checkIfAdmin(bot, message);
       if (isAdmin) {
         await botReply(message, "Ok, I'll start introducing people :sparkles: ");
-        await startAPairingSession(bot, message);
-        await pairingConversation(bot, message);
+        const membersPaired = await startAPairingSession(bot, message);
+        await pairingConversation(bot, message, membersPaired);
         await botReply(message, "All people have been introduced :rocket:");
       } else {
         await botReply(message, "Sorry but it looks like you're not an admin. You can't use this feature.")

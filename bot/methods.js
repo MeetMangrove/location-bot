@@ -33,32 +33,6 @@ export const checkIfAdmin = (bot, message) => {
   });
 };
 
-export const getGroupName = (teacher, learner) => {
-  return new Promise((resolve, reject) => {
-    try {
-      let count = 0;
-      base('Pairings').select({
-        view: "Main View",
-      }).eachPage(function page(records, fetchNextPage) {
-        records.forEach((record) => {
-          if((record.get('Teacher') === teacher && record.get('Learner') === learner)
-          || record.get('Teacher') === learner && record.get('Learner') === teacher){
-            count++;
-          }
-        });
-        fetchNextPage();
-      }, function done(err) {
-        if(err) reject(err);
-        const number = count < 10 ? `0${count}` : count;
-        resolve(`p${number}_${teacher.substring(0, 8)}_${learner.substring(0, 8)}`);
-      });
-    } catch (e) {
-      console.log('getGroupName', e);
-      reject(e);
-    }
-  });
-};
-
 export const getAllMembers = () => {
   return new Promise((resolve, reject) => {
     try {

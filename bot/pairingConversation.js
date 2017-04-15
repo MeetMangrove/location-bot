@@ -7,15 +7,15 @@ import find from 'lodash/find';
 import map from 'lodash/map';
 import Promise from 'bluebird';
 import asyncForEach from 'async-foreach';
+import findIndex from 'lodash/findIndex';
 
 import { base } from './configSlackbot';
-import { getGroupName } from './methods';
 import settings from './settings';
 
 const { SLACK_TOKEN: token } = settings;
 const { forEach } = asyncForEach;
 
-export const pairingConversation = (bot, message) => {
+export const pairingConversation = (bot, message, membersPaired) => {
   return new Promise((resolve, reject) => {
     try {
       (async () => {
@@ -33,9 +33,10 @@ export const pairingConversation = (bot, message) => {
             const done = this.async();
             const teacher = find(list, ['name', record.get('Teacher')]);
             const learner = find(list, ['name', record.get('Learner')]);
-            const skill = record.get('Skill')[0];
+            const indexTeacher = findIndex(membersPaired, e => e.name === teacher.name);
+            const skill = membersPaired[indexTeacher].teaching;
             const { groups } = await apiGroups.listAsync({ token });
-            const groupName = await getGroupName(teacher.name, learner.name);
+            const groupName = `p2pl_${teacher.name.substring(0, 8)}_${learner.name.substring(0, 8)}`;
             const group = find(groups, ['name', groupName]);
             let groupId;
             if (group) {
