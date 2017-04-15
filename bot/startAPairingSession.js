@@ -6,11 +6,13 @@ import Promise from 'bluebird';
 import pick from 'lodash/pick';
 import find from 'lodash/find';
 import map from 'lodash/map';
+import asyncForEach from 'async-foreach';
 
 import { getMembersPaired } from './methods';
 import settings from './settings';
 
 const { SLACK_TOKEN: token } = settings;
+const { forEach } = asyncForEach;
 
 export const startAPairingSession = (bot, message) => {
   return new Promise((resolve, reject) => {
@@ -21,78 +23,84 @@ export const startAPairingSession = (bot, message) => {
         const botSay = Promise.promisify(bot.say);
         const list = map(members, member => pick(member, ['id', 'name']));
         const membersPaired = await getMembersPaired();
-        membersPaired.forEach((member) => {
+        forEach(membersPaired, async function (member) {
+          const done = this.async();
           const channel = find(list, ['name', member.name]).id;
           const { isLearner, teacherName, learning, isTeacher, learnerName, teaching } = member;
           if(isLearner === true && isTeacher === false){
-            botSay({
-              text: `Hey, I only find a learning match... you won't teach this month.`,
+            await botSay({
+              text: `Hey, I only found a learning match for you. It means that you won't teach this month.`,
               channel,
             });
-            botSay({
+            await botSay({
               text: `But next session you will have the priority :wink:`,
               channel,
             });
-            botSay({
-              text: `Let me introduce @${teacherName} who will teach you *${learning}*`,
+            await botSay({
+              text: `Let me introduce you to <@${teacherName}> who will tell you more about *${learning}*`,
               channel,
             });
-            botSay({
-              text: `I will start a conversation between you two`,
+            await botSay({
+              text: `I will start a conversation with the two of you.`,
               channel,
             });
-            botSay({
-              text: `I you want more info about your pairing, just type \`/whois @name\``,
+            await botSay({
+              text: `If you want more infos about your pairing, beforehand just type \`/whois @name\``,
               channel,
             });
           }else if(isLearner === true && isTeacher === true){
-            botSay({
-              text: `Hey ! I find a good pairing match this month :smile:`,
+            await botSay({
+              text: `Hey, I just found the perfect pairing for you :smile:`,
               channel,
             });
-            botSay({
-              text: `You will teach *${teaching}* to @${learnerName}...`,
+            await botSay({
+              text: `You will share your experiences about *${teaching}* with <@${learnerName}>`,
               channel,
             });
-            botSay({
-              text: `...and @${teacherName} will explain you *${learning}*`,
+            await botSay({
+              text: `and <@${teacherName}> will tell you more about *${learning}*`,
               channel,
             });
-            botSay({
+            await botSay({
               text: `I will start two separate conversation with them.`,
               channel,
             });
-            botSay({
-              text: `I you want more info about them, just type \`/whois @name\``,
+            await botSay({
+              text: `If you want more info about them, beforehand just type \`/whois @name\``,
               channel,
             });
           }else if(isLearner === false && isTeacher === true){
-            botSay({
-              text: `Hey, I only find a teaching match... you won't learn this month.`,
+            await botSay({
+              text: `Hey, I only found a teaching match for you. It means that you won't learn this month.`,
               channel,
             });
-            botSay({
-              text: `but next session you will have the priority :wink:`,
+            await botSay({
+              text: `But next session you will have the priority :wink:`,
               channel,
             });
-            botSay({
-              text: `Let me introduce you @${learnerName}, he want to know about *${teaching}*`,
+            await botSay({
+              text: `Let me introduce you to <@${learnerName}> who wants to learn more about *${teaching}*`,
               channel,
             });
-            botSay({
-              text: `I will start a conversation between you two`,
+            await botSay({
+              text: `I will start a conversation with the two of you.`,
               channel,
             });
-            botSay({
-              text: `I you want more info about your pairing, just type \`/whois @name\``,
+            await botSay({
+              text: `If you want more info about your pairing, just type \`/whois @name\``,
               channel,
             });
           }else{
-            botSay({
-              text: `Sorry dude... I cannot find a pairing learning for this session...`,
+            await botSay({
+              text: `I'm a really sorry :pensive: I cannot find any pairing for you this month.`,
+              channel,
+            });
+            await botSay({
+              text: `I'm sure you want to learn more about other skills: fill in this form to keep me updated on what you want to teach and learn.`,
               channel,
             });
           }
+          done();
         });
         resolve();
       })();

@@ -5,6 +5,7 @@
 import Promise from 'bluebird';
 import { base } from './configSlackbot';
 import findIndex from 'lodash/findIndex';
+import random from 'lodash/random';
 
 export const checkIfAdmin = (bot, message) => {
   return new Promise((resolve, reject) => {
@@ -96,7 +97,9 @@ export const getMembersPaired = () => {
           records.forEach((record) => {
             const learner = record.get('Learner');
             const teacher = record.get('Teacher');
-            const skill = record.get('Skill');
+            const skills = record.get('Skill');
+            const index = random(skills.length - 1);
+            const skill = skills[index];
             const indexLearner = findIndex(members, e => e.name === learner);
             const indexTeacher = findIndex(members, e => e.name === teacher);
             members[indexLearner].isLearner = true;

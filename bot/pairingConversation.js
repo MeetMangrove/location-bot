@@ -59,15 +59,15 @@ export const pairingConversation = (bot, message) => {
             await apiGroups.inviteAsync({ token, channel: groupId, user: bot.identifyBot().id });
             await airtableUpdate(record.id, { "Bot Introduction": true });
             await botSay({
-              text: 'Hey guys ! I\'ve paired you this month :smile:',
+              text: 'Hey guys! I\'ve paired you this month :smile:',
               channel: groupId
             });
             await botSay({
-              text: `@${teacher.name}: @${learner.name} want to learn more about *${skill}*`,
+              text: `<@${teacher.name}>: <@${learner.name}> would like to know more about *${skill}*. I'm sure you have a lot to share!`,
               channel: groupId
             });
             await botSay({
-              text: `I let you arrange a meeting together, let me know about the date :wink:`,
+              text: `I let you two arrange a meeting together, let me know about the date :blush:.`,
               channel: groupId
             });
             done();

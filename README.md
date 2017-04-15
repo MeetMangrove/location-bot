@@ -37,8 +37,24 @@ $ pip install -r requirements.txt
 
 ### Run the bot
 
+In local for development:
 ```bash
 $ npm run start
+```
+
+Building:
+```bash
+$ npm run build
+```
+
+Running in production mode after building:
+```bash
+$ npm run serve
+```
+
+Heroku worker:
+```bash
+$ npm run worker
 ```
 
 To get a new token from oauth link:
