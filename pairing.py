@@ -16,6 +16,8 @@
 # see https://en.wikipedia.org/wiki/Matching_(graph_theory)
 
 import networkx as nx
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import time
 import json
