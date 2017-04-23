@@ -81,3 +81,40 @@ controller.hears("first-time", ["direct_message", "direct_mention"], function(bo
   }
 })
 
+controller.hears("status",["direct_message", "direct_mention"], function(bot, message){
+  // TODO
+  console.log("status")
+  bot.startPrivateConversation(message, (err, convo)=>{
+    convo.say("Hi, Your current status is:")
+    convo.say("You can change your status by messaging me with `start` or `stop`")
+  })
+})
+
+controller.hears("stop",["direct_message", "direct_mention"], function(bot, message){
+  // TODO
+  console.log("stop")
+  bot.startPrivateConversation(message, (err, convo)=>{
+    convo.say("Okay 😥, sorry to see you go.")
+    convo.say("You can start again by messaging me with `start`.")
+  });
+})
+
+controller.hears("start",["direct_message", "direct_mention"], function(bot, message){
+  // TODO
+  console.log("start")
+  bot.startPrivateConversation(message, (err, convo)=>{
+    convo.say("Amaaaaaaaaaaaazing 🎉'! I'll let you know when the next session starts! Happy Learning!")
+  });
+})
+
+controller.hears(["help","options"],["direct_message", "direct_mention"], function(bot, message){
+  bot.startConversation(message, (err, convo)=>{
+    convo.say(`Hi, I'm the Learning Bot. You can message me one of the following things: \n
+    \`help\` - this information\n
+    \`first-time\` - an intro to the bot\n
+    \`status\` - find out if you're active to be paired in the next session\n
+    \`stop\` - stop being paired\n
+    \`start\` - start being paired\n
+    That's it. Happy Learning!`)
+  })
+})
