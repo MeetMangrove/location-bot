@@ -9,6 +9,7 @@ import { controller } from './configSlackbot';
 import { checkIfAdmin } from './methods';
 import { pairingConversation } from './pairingConversation';
 import { startAPairingSession } from './startAPairingSession';
+import { firstTimeConversation } from './firstTime';
 
 const options = {
   mode: 'text',
@@ -58,3 +59,25 @@ controller.hears("introductions", ["direct_message", "direct_mention"], (bot, me
     bot.reply(message, "An error occur: " + e.error);
   }
 });
+
+controller.hears("first-time", ["direct_message", "direct_mention"], function(bot,message){
+  console.log(message);
+  try {
+    checkIfAdmin(bot, message)
+      .then((res)=>{
+        if(res){
+          // get all members
+          // TODO
+          // for each member, start a first time conversation
+          firstTimeConversation(bot, message, {name: "{name}"})
+        } else {
+          firstTimeConversation(bot, message, {name: ""})
+        }
+      })
+
+  } catch (e){
+    console.log(e);
+    bot.reply(message, "An error occurred: " + e);
+  }
+})
+
