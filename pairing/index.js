@@ -1,16 +1,11 @@
 import _ from 'lodash'
 import findMatching from 'bipartite-matching'
-import {getAllPeople} from '../airtable'
 
 
-const callback = (err) => {
-  if (err) {
-    console.log('ERROR', err)
-    return;
-  }
-}
-
-
+// takes an Array of people represented as
+//   [{name: String, skills: [String], interests: [String]}]
+// and computes a pairing, represented as an Array
+//   [{teacher_index: Int, learner_index: Int, skills: [String]}]
 export const generatePairing = (people, callback) => {
   let people = _.shuffle(people)
   let teachers_count = 0
@@ -31,11 +26,9 @@ export const generatePairing = (people, callback) => {
   })
   console.log(teachers_count, 'teachers')
   console.log(learners_count, 'learners')
-
   // find max bipartite matching
   const match = findMatching(people.length, people.length, edges)
   console.log(match.length, 'pairs')
-
   // return pairing object
   const pairs = match.map((pair) => {
     const teacher_index = pair[0], learner_index = pair[1]
@@ -52,6 +45,5 @@ export const generatePairing = (people, callback) => {
       learner_name: learner.name,
     }
   })
-
   callback(undefined, pairs)
 })
