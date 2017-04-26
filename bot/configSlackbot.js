@@ -2,18 +2,12 @@
  * Created by thomasjeanneau on 08/02/2017.
  */
 
-import Botkit from 'botkit';
-import Airtable from 'airtable';
-import settings from './settings';
+import Botkit from 'botkit'
+import settings from './settings'
+import {getAllPeople, base} from '../airtable'
 
-const { SLACK_BOT_TOKEN, SLACK_CLIENT_ID, SLACK_CLIENT_SECRET, AIRTABLE_API_KEY, AIRTABLE_BASE_KEY, PORT_BOT } = settings;
+const { SLACK_BOT_TOKEN, SLACK_CLIENT_ID, SLACK_CLIENT_SECRET, PORT_BOT } = settings;
 
-Airtable.configure({
-  endpointUrl: 'https://api.airtable.com',
-  apiKey: AIRTABLE_API_KEY,
-});
-
-const base = Airtable.base(AIRTABLE_BASE_KEY);
 const controller = Botkit.slackbot({
   debug: false,
   interactive_replies: true,
@@ -41,37 +35,29 @@ controller.spawn({
 }).startRTM();
 
 controller.hears('show P2PL applicants', ['direct_message', 'direct_mention', 'mention'], (bot, message) => {
-  base('P2PL Tests').select({
-    maxRecords: 150,
-    view: "Main View",
-    fields: ["Name", "Interests", "Skills"]
-  }).eachPage(function page(records, fetchNextPage) {
-    records.forEach(function (record) {
-      if (record.get('Interests') && record.get('Skills')) {
-        bot.reply(message, {
-          'text': `:sparkles: _${record.get('Name')}_ :sparkles:`,
-          'attachments': [
-            {
-              'title': ':sleuth_or_spy: Interests',
-              'text': record.get('Interests').join(', '),
-              'color': '#9575CD'
-            },
-            {
-              'title': ':muscle: Skills',
-              'text': record.get('Skills').join(', '),
-              'color': '#E57373'
-            }
-          ],
-        });
-      }
-    });
-    fetchNextPage();
-  }, function done(err) {
+  getAllPeople('P2PL Tests', (err, people) => {
     if (err) {
-      console.error(err);
-      return;
+      console.error('ERROR', err)
+      return
     }
-  });
-});
+    people.forEach((person) => {
+      bot.reply(message, {
+        'text': `:sparkles: _${person.name}_ :sparkles:`,
+        'attachments': [
+          {
+            'title': ':sleuth_or_spy: Interests',
+            'text': person.interests.join(', '),
+            'color': '#9575CD'
+          },
+          {
+            'title': ':muscle: Skills',
+            'text': person.skills.join(', '),
+            'color': '#E57373'
+          }
+        ],
+      })
+    })
+  })
+})
 
 export { controller, base };
