@@ -18,7 +18,7 @@ controller.configureSlackApp({
   clientId: SLACK_CLIENT_ID,
   clientSecret: SLACK_CLIENT_SECRET,
   redirectUri: 'https://mangrove-pairing.herokuapp.com/',
-  scopes: ['bot', 'users:read', 'groups:write']
+  scopes: ['bot', 'chat:write:bot', 'groups:history', 'groups:read', 'groups:write', 'users:read', 'users:read.email']
 });
 
 controller.setupWebserver(PORT_BOT, function (err, webserver) {
@@ -32,7 +32,9 @@ controller.setupWebserver(PORT_BOT, function (err, webserver) {
 
 controller.spawn({
   token: SLACK_BOT_TOKEN,
-}).startRTM();
+})
+  .configureIncomingWebhook({url: 'https://hooks.slack.com/services/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'})
+  .startRTM();
 
 controller.hears('show P2PL applicants', ['direct_message', 'direct_mention', 'mention'], (bot, message) => {
   getAllPeople('P2PL Tests', (err, people) => {
