@@ -5,7 +5,8 @@
     "start": "nodemon bot/index.js --exec babel-node --copy-files pairing.py",
     "build": "babel bot -d dist",
     "serve": "node dist/index.js",
-    "worker": "babel bot -d dist; node --optimize_for_size --max_old_space_size=240 --gc_interval=100 dist/index.js "
+    "worker": "babel bot -d dist; node --optimize_for_size --max_old_space_size=240 --gc_interval=100 dist/index.js ",
+    "test": "mocha"
   },
   "engines": {
     "node": "7.7.3"

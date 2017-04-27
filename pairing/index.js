@@ -4,8 +4,18 @@ import findMatching from 'bipartite-matching'
 
 // takes an Array of people represented as
 //   [{name: String, skills: [String], interests: [String]}]
-// and computes a pairing, represented as an Array
-//   [{teacher_index: Int, learner_index: Int, skills: [String]}]
+//
+// and computes a pairing, represented as an Object with:
+//   {
+//     isComplete: true|false, // was everyone paired?
+//     pairs: [ // list of pairs
+//       {
+//         teacher_index: Int,
+//         learner_index: Int,
+//         skills: [String]}
+//       }
+//     ]
+//  }
 export const generatePairing = (people, callback) => {
   people = _.shuffle(people)
   let teachers_count = 0
@@ -45,5 +55,8 @@ export const generatePairing = (people, callback) => {
       learner_name: learner.name,
     }
   })
-  callback(undefined, pairs)
+  callback(undefined, {
+    isComplete: (pairs.length == people.length),
+    pairs,
+  })
 }
