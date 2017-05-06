@@ -1,7 +1,7 @@
 # Created by .ignore support plugin (hsz.mobi)
 .idea
 node_modules
-bot/settings.js
+main/settings.js
 
 
 # Byte-compiled / optimized / DLL files
