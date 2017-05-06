@@ -42,6 +42,16 @@ In local for development:
 $ npm run start
 ```
 
+Lint code:
+```bash
+$ npm run lint
+```
+
+Fix lint errors:
+```bash
+$ npm run fix
+```
+
 Building:
 ```bash
 $ npm run build
