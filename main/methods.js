@@ -13,13 +13,15 @@ const {forEach} = asyncForEach
 
 // return member fields as an object
 export const getMember = async (id) => {
-  const { fields } = await Promise.promisify(base('Members').find)(id)
+  const {fields} = await Promise.promisify(base('Members').find)(id)
   return fields
 }
 
-// reads all applicants from Airtable, and returns them
-// as an Array of
-// {name: String, interests: [String], skills: [String]}
+/* reads all applicants from Airtable, and returns them as an Array of
+ {name: String,
+ interests: [String],
+ skills: [String]}
+*/
 export const getAllApplicants = () => {
   const people = []
   return new Promise((resolve, reject) => {
@@ -31,7 +33,7 @@ export const getAllApplicants = () => {
         const done = this.async()
         const interests = record.get('Interests')
         const skills = record.get('Skills')
-        const { 'Slack Handle': name } = await getMember(record.get('Applicant'))
+        const {'Slack Handle': name} = await getMember(record.get('Applicant'))
         // require name, default skills and interests to []
         if (name && name.length) {
           people.push({
@@ -64,7 +66,7 @@ export const checkIfAdmin = (bot, message) => {
     }).eachPage(function page (records, fetchNextPage) {
       forEach(records, async function (record) {
         const done = this.async()
-        const { 'Slack Handle': name } = await getMember(record.get('Applicant'))
+        const {'Slack Handle': name} = await getMember(record.get('Applicant'))
         admins.push(name)
         done()
       }, fetchNextPage)
@@ -73,18 +75,24 @@ export const checkIfAdmin = (bot, message) => {
         reject(err)
         return
       }
-      const { user: { name } } = await apiUser.infoAsync({user: message.user})
+      const {user: {name}} = await apiUser.infoAsync({user: message.user})
       resolve(admins.indexOf(`@${name}`) >= 0)
     })
   })
 }
 
-// reads all pairing from Airtable, and returns them
-// as an Array of
-// {name: String, isLearner: Boolean, teacherName, learning, isTeacher: Boolean, learnerName, teaching}
+/* reads all pairing from Airtable, and returns them as an Array of
+ {name: String,
+ isLearner: Boolean,
+ teacherName: String,
+ learning: String,
+ isTeacher: Boolean,
+ learnerName: String,
+ teaching: String}
+*/
 export const getMembersPaired = async () => {
   const applicants = await getAllApplicants()
-  const members = map(applicants, ({ name }) => ({ name, isLearner: false, isTeacher: false }))
+  const members = map(applicants, ({name}) => ({name, isLearner: false, isTeacher: false}))
   return new Promise((resolve, reject) => {
     base('Pairings').select({
       view: 'Main View',
