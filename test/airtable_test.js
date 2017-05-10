@@ -11,9 +11,9 @@ describe("airtable", function() {
 
   describe(".getAllPeople", function() {
 
-    function expectSuccessful(applicantsTableName, membersTableName) {
+    function expectSuccessful(applicantsTableName) {
       it("retrieves people, skills and interests", function() {
-        return getAllPeople(applicantsTableName, membersTableName)
+        return getAllPeople(applicantsTableName)
         .then((people) => {
           expect(people).to.be.an('array')
           expect(people).not.to.be.empty
@@ -37,11 +37,11 @@ describe("airtable", function() {
     }
 
     describe("with the old 'P2PL Tests' table", function() {
-      expectSuccessful('P2PL Tests', null)
+      expectSuccessful('P2PL Tests')
     })
 
     describe("with the new 'P2PL Applicants' table", function() {
-      expectSuccessful('P2PL Applicants', 'Members')
+      expectSuccessful('P2PL Applicants')
     })
   })
 

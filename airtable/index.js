@@ -35,7 +35,7 @@ const _getAllRecords = (select, callback) => {
 // reads all people from Airtable, and returns them
 // as an Array of
 //  {name: String, interests: [String], skills: [String]}
-export const getAllPeople = (applicantsTableName, membersTableName) => {
+export const getAllPeople = (applicantsTableName) => {
   if (applicantsTableName === 'P2PL Tests') {
     // TODO: this is temporary code to handle the P2PL Tests table
     // and support backwards compatibility
@@ -43,24 +43,20 @@ export const getAllPeople = (applicantsTableName, membersTableName) => {
     return _getAllRecords(base(applicantsTableName).select({
       view: "Main View",
       fields: ["Slack Handle", "Interests", "Skills", "Pairing admin"]
-    })).then((applicants) => {
-      const people = []
-      applicants.forEach((r) => {
-        const interests = r.get('Interests'),
-              skills = r.get('Skills'),
-              name = r.get('Slack Handle'),
-              isAdmin = !!r.get('Pairing admin')
+    })).then((records) => {
+      return _.reduce(records, (people, r) => {
+        const name = r.get('Slack Handle')
         // require name, default skills and interests to []
         if (name && name.length) {
           people.push({
             name,
-            interests: (interests || []),
-            skills: (skills || []),
-            isAdmin,
+            interests: (r.get('Interests') || []),
+            skills: (r.get('Skills') || []),
+            isAdmin: !!r.get('Pairing admin'),
           })
         }
-      })
-      return people
+        return people
+      }, [])
     })
   }
   // Code below handles the structure of the new P2PL Applicants table
