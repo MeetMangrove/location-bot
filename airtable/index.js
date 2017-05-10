@@ -14,7 +14,7 @@ Airtable.configure({
 
 
 // allows accessing tables directly
-export const base = Airtable.base(AIRTABLE_BASE_KEY)
+export const base = Airtable.base(AIRTABLE_BASE_KEY);
 
 
 // reads all records from a table
