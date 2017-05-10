@@ -15,7 +15,7 @@ function _pairing_learners(pairing) {
 }
 
 
-describe("generatePairing", function() {
+describe(".generatePairing", function() {
 
   context("with 2 people with mutual skills/interests", function() {
     beforeEach(function() {
@@ -26,8 +26,7 @@ describe("generatePairing", function() {
     })
 
     it("works", function() {
-      generatePairing(this.people, (err, pairing) => {
-        expect(err).to.be.undefined
+      return generatePairing(this.people).then((pairing) => {
         expect(pairing.isComplete).to.be.true
         expect(_pairing_size(pairing)).to.eq(2)
         expect(_pairing_teachers(pairing)).to.eql(['alice', 'bob'])
@@ -48,8 +47,7 @@ describe("generatePairing", function() {
     })
 
     it("results in an incomplete pairing", function() {
-      generatePairing(this.people, (err, pairing) => {
-        expect(err).to.be.undefined
+      return generatePairing(this.people).then((pairing) => {
         expect(pairing.isComplete).to.be.false
         // expect 2 pairs
         expect(_pairing_size(pairing)).to.eq(2)
