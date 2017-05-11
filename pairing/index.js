@@ -59,9 +59,12 @@ export const generatePairing = (people) => {
         learnerName: learner.name,
       }
     })
+    const dateISO = new Date().toISOString()
     resolve({
       // a unique-enough time-based id, helps us identify the pairing
-      id: new Date().toISOString() + '_' + Math.floor(1000 * Math.random()),
+      id: dateISO + '_' + Math.floor(1000 * Math.random()),
+      // ISO8601 creation date
+      createdAt: dateISO,
       // a complete pairing = each person is in 2 pairs
       isComplete: (pairs.length == people.length),
       // list of pairs

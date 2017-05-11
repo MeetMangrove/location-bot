@@ -84,11 +84,13 @@ export const getAllPeople = (applicantsTableName) => {
 export const getPairing = (tableName, pairingId) => {
   return _getAllRecords(base(tableName).select({
     view: "Main View",
-    fields: ['Teacher', 'Learner', 'Skill'],
+    fields: ['Teacher', 'Learner', 'Skill', 'Paired On'],
     filterByFormula: `{Pairing Id}='${pairingId}'`,
   })).then((pairingRecords) => {
+    let createdAt = pairingRecords.length && pairingRecords[0].get('Paired On')
     return {
       id: pairingId,
+      createdAt: createdAt && createdAt + "T00:00:00Z",
       pairs: _.map(pairingRecords, (r) => {
         return {
           teacherName: r.get('Teacher'),
@@ -111,6 +113,7 @@ export const savePairing = (tableName, pairing) => {
   return Promise.map(pairing.pairs, (pair) => {
     return create({
       'Pairing Id': pairing.id,
+      'Paired On': pairing.createdAt.substr(0, 10),
       'Teacher': pair.teacherName,
       'Learner': pair.learnerName,
       'Skill': pair.skills,
