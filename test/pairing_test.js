@@ -4,14 +4,14 @@ import {generatePairing} from '../pairing'
 
 
 // helpers to inspect a pairing
-function _pairing_size(pairing) {
+function _pairingSize(pairing) {
   return pairing.pairs.length
 }
-function _pairing_teachers(pairing) {
-  return _.orderBy(_.map(pairing.pairs, 'teacher_name'))
+function _pairingTeachers(pairing) {
+  return _.orderBy(_.map(pairing.pairs, 'teacherName'))
 }
-function _pairing_learners(pairing) {
-  return _.orderBy(_.map(pairing.pairs, 'learner_name'))
+function _pairingLearners(pairing) {
+  return _.orderBy(_.map(pairing.pairs, 'learnerName'))
 }
 
 
@@ -29,9 +29,9 @@ describe(".generatePairing", function() {
       return generatePairing(this.people).then((pairing) => {
         expect(pairing.id).to.be.a('string')
         expect(pairing.isComplete).to.be.true
-        expect(_pairing_size(pairing)).to.eq(2)
-        expect(_pairing_teachers(pairing)).to.eql(['alice', 'bob'])
-        expect(_pairing_learners(pairing)).to.eql(['alice', 'bob'])
+        expect(_pairingSize(pairing)).to.eq(2)
+        expect(_pairingTeachers(pairing)).to.eql(['alice', 'bob'])
+        expect(_pairingLearners(pairing)).to.eql(['alice', 'bob'])
       })
     })
   })
@@ -52,10 +52,10 @@ describe(".generatePairing", function() {
         expect(pairing.id).to.be.a('string')
         expect(pairing.isComplete).to.be.false
         // expect 2 pairs
-        expect(_pairing_size(pairing)).to.eq(2)
+        expect(_pairingSize(pairing)).to.eq(2)
         // expect alice to be both a learner and a teacher
-        expect(_pairing_teachers(pairing)).to.include('alice')
-        expect(_pairing_learners(pairing)).to.include('alice')
+        expect(_pairingTeachers(pairing)).to.include('alice')
+        expect(_pairingLearners(pairing)).to.include('alice')
       })
     })
   })

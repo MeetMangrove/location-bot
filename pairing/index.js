@@ -11,50 +11,52 @@ import findMatching from 'bipartite-matching'
 //     isComplete: true|false, // was everyone paired?
 //     pairs: [ // list of pairs
 //       {
-//         teacher_index: Int,
-//         learner_index: Int,
-//         skills: [String]}
+//         teacherIndex: Int,
+//         learnerIndex: Int,
+//         skills: [String]},
+//         teacherName: String,
+//         learnerName: String,
 //       }
 //     ]
 //  }
 export const generatePairing = (people) => {
   return new Promise((resolve, reject) => {
     people = _.shuffle(people)
-    let teachers_count = 0
-    let learners_count = 0
+    let teachersCount = 0
+    let learnersCount = 0
     const edges = []
-    people.forEach((p1, p1_index) => {
+    people.forEach((p1, p1Index) => {
       // update counters
-      if (p1.skills.length) teachers_count += 1
-      if (p1.interests.length) learners_count += 1
+      if (p1.skills.length) teachersCount += 1
+      if (p1.interests.length) learnersCount += 1
       // for every other person, add an edge [p1, p2] to the
       // graph if p1 can teach a skill to p2
-      people.forEach((p2, p2_index) => {
-        if (p1_index != p2_index &&
+      people.forEach((p2, p2Index) => {
+        if (p1Index != p2Index &&
             _.intersection(p1.skills, p2.interests).length) {
-          edges.push([p1_index, p2_index])
+          edges.push([p1Index, p2Index])
         }
       })
     })
-    console.log(teachers_count, 'teachers')
-    console.log(learners_count, 'learners')
+    console.log(teachersCount, 'teachers')
+    console.log(learnersCount, 'learners')
     // find max bipartite matching
     const match = findMatching(people.length, people.length, edges)
     console.log(match.length, 'pairs')
     // return pairing object
     const pairs = match.map((pair) => {
-      const teacher_index = pair[0], learner_index = pair[1]
-      const teacher = people[teacher_index], learner = people[learner_index]
+      const teacherIndex = pair[0], learnerIndex = pair[1]
+      const teacher = people[teacherIndex], learner = people[learnerIndex]
       const skills = _.intersection(teacher.skills, learner.interests)
       return {
         // indexes of teacher and learner in the people array
-        teacher_index,
-        learner_index,
+        teacherIndex,
+        learnerIndex,
         // skills that could be taught by teacher to learner
         skills,
         // names added for convenience
-        teacher_name: teacher.name,
-        learner_name: learner.name,
+        teacherName: teacher.name,
+        learnerName: learner.name,
       }
     })
     resolve({
