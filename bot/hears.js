@@ -2,19 +2,14 @@
  * Created by thomasjeanneau on 09/04/2017.
  */
 
-import PythonShell from 'python-shell';
 import Promise from 'bluebird';
 
 import { controller } from './configSlackbot';
 import { checkIfAdmin } from './methods';
 import { pairingConversation } from './pairingConversation';
 import { startAPairingSession } from './startAPairingSession';
+import { pairAllApplicants } from '../pairing'
 
-const options = {
-  mode: 'text',
-  pythonPath: 'python',
-  scriptPath: './',
-};
 
 controller.hears("pair", ["direct_message", "direct_mention"], function (bot, message) {
   try {
@@ -23,20 +18,18 @@ controller.hears("pair", ["direct_message", "direct_mention"], function (bot, me
       const isAdmin = await checkIfAdmin(bot, message);
       if (isAdmin) {
         await botReply(message, "Ok, I'll start pairing people");
-        PythonShell.run("pairing.py", options, async function (error) {
-          if (!error) {
-            await botReply(message, "Pairing complete. Results should be available in airtable. You can run 'introductions' to send a message to each pair.")
-          } else {
-            console.log(error);
-            await botReply(message, "An error occurred during pairing.")
-          }
-        })
+        // generate pairing
+        const pairing = await pairAllApplicants()
+        // notify about the pairing
+        await botReply(message, "Pairing done, saved to Airtable." +
+          ` It contains ${pairing.pairs.length} pairs.`
+        )
       } else {
         await botReply(message, "Sorry but it looks like you're not an admin. You can't use this feature.")
       }
     })();
   } catch (e) {
-    bot.reply(message, "An error occur: " + e.error);
+    bot.reply(message, "An error occurred: " + e.error);
   }
 });
 
