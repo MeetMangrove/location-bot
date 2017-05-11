@@ -27,6 +27,7 @@ describe(".generatePairing", function() {
 
     it("works", function() {
       return generatePairing(this.people).then((pairing) => {
+        expect(pairing.id).to.be.a('string')
         expect(pairing.isComplete).to.be.true
         expect(_pairing_size(pairing)).to.eq(2)
         expect(_pairing_teachers(pairing)).to.eql(['alice', 'bob'])
@@ -48,6 +49,7 @@ describe(".generatePairing", function() {
 
     it("results in an incomplete pairing", function() {
       return generatePairing(this.people).then((pairing) => {
+        expect(pairing.id).to.be.a('string')
         expect(pairing.isComplete).to.be.false
         // expect 2 pairs
         expect(_pairing_size(pairing)).to.eq(2)

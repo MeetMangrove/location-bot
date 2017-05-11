@@ -58,7 +58,11 @@ export const generatePairing = (people) => {
       }
     })
     resolve({
+      // a unique-enough time-based id, helps us identify the pairing
+      id: new Date().toISOString() + '_' + Math.floor(1000 * Math.random()),
+      // a complete pairing = each person is in 2 pairs
       isComplete: (pairs.length == people.length),
+      // list of pairs
       pairs,
     })
   })
