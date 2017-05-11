@@ -1,6 +1,36 @@
 import _ from 'lodash'
 import Promise from 'bluebird'
 import findMatching from 'bipartite-matching'
+import {getAllPeople, savePairing} from '../airtable'
+
+
+const {env} = process
+// constants that can be overridden through environment variables
+export const APPLICANTS_TABLE = env.APPLICANTS_TABLE || 'P2PL Applicants'
+export const PAIRINGS_TABLE = env.PAIRINGS_TABLE || 'Pairings'
+
+
+
+// Main pairing function:
+// - reads all applicants from Airtable
+// - creates a pairing
+// - saves the pairing into Airtable and returns it
+// Different tables can be set up through options
+export const pairAllApplicants = (opts = {}) => {
+  const aTable = opts.applicantsTable || APPLICANTS_TABLE
+  const pTable = opts.pairingsTable || PAIRINGS_TABLE
+  console.log(`Pairing people in ${aTable}, saving in ${pTable}`)
+  return getAllPeople(aTable)
+    .then((people) => {
+      console.log(`Found ${people.length} people in ${aTable}`)
+      return generatePairing(people)
+    })
+    .then((pairing) => {
+      console.log(`Saving ${pairing.pairs.length} pairs to ${pTable}, id=${pairing.id}`)
+      return savePairing(pTable, pairing)
+    })
+}
+
 
 
 // takes an Array of people represented as
