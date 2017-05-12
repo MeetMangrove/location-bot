@@ -63,18 +63,34 @@ controller.hears("introductions", ["direct_message", "direct_mention"], (bot, me
 controller.hears("first-time", ["direct_message", "direct_mention"], function(bot,message){
   console.log(message);
   try {
+    firstTimeConversation(bot, message, {name: ""})
+  } catch (e){
+    console.log(e);
+    bot.reply(message, "An error occurred: " + e);
+  }
+})
+
+
+controller.hears("send-ft", ["direct_message", "direct_mention"], function(bot,message){
+  console.log(message);
+  try {
     checkIfAdmin(bot, message)
       .then((res)=>{
         if(res){
-          // get all members
-          // TODO
-          // for each member, start a first time conversation
-          firstTimeConversation(bot, message, {name: "{name}"})
+          bot.api.users.list({}, (err, r)=>{
+            // Get all members
+            r.members.forEach((member)=>{
+              // For each member, start a firstTimeConversation
+              if(member.real_name == "Saad Elbeleidy"){ // Remove this if statement for production
+                firstTimeConversation(bot, {user: member.id}, {name: member.profile.first_name});
+              } 
+            });
+            bot.reply(message, "All done!");
+          })
         } else {
-          firstTimeConversation(bot, message, {name: ""})
+          bot.reply(message, "This option is only available to admins");
         }
       })
-
   } catch (e){
     console.log(e);
     bot.reply(message, "An error occurred: " + e);
