@@ -10,6 +10,7 @@ import { checkIfAdmin } from './methods';
 import { pairingConversation } from './pairingConversation';
 import { startAPairingSession } from './startAPairingSession';
 import { firstTimeConversation } from './firstTime';
+import { getPerson, updatePerson} from '../airtable'
 
 const options = {
   mode: 'text',
@@ -100,27 +101,50 @@ controller.hears("send-ft", ["direct_message", "direct_mention"], function(bot,m
 controller.hears("status",["direct_message", "direct_mention"], function(bot, message){
   // TODO
   console.log("status")
-  bot.startPrivateConversation(message, (err, convo)=>{
-    convo.say("Hi, Your current status is:")
-    convo.say("You can change your status by messaging me with `start` or `stop`")
-  })
+  bot.api.users.info({user:message.user}, (err, res)=>{ 
+    console.log(res.user.name);
+    getPerson('P2PL Tests',res.user.name, (err, rec)=>{
+      console.log(rec.id);
+      const status = rec.get("Active P2P") ? "active" : "inactive";
+      bot.startPrivateConversation(message, (err, convo)=>{
+        convo.say("Hi, Your current status is: " + status)
+        convo.say("You can change your status by messaging me with `start` or `stop`")
+      })
+    })
+  }) 
 })
 
 controller.hears("stop",["direct_message", "direct_mention"], function(bot, message){
   // TODO
   console.log("stop")
-  bot.startPrivateConversation(message, (err, convo)=>{
-    convo.say("Okay 😥, sorry to see you go.")
-    convo.say("You can start again by messaging me with `start`.")
-  });
+  bot.api.users.info({user:message.user}, (err, res)=>{ 
+    console.log(res.user.name);
+    updatePerson('P2PL Tests',res.user.name, {"Active P2P":false}, (err, rec)=>{
+      if (err){
+        console.log("Error occurred");
+      }
+      bot.startPrivateConversation(message, (err, convo)=>{
+        convo.say("Okay 😥, sorry to see you go.")
+        convo.say("You can start again by messaging me with `start`.")
+      })
+    })
+  })
 })
 
 controller.hears("start",["direct_message", "direct_mention"], function(bot, message){
   // TODO
   console.log("start")
-  bot.startPrivateConversation(message, (err, convo)=>{
-    convo.say("Amaaaaaaaaaaaazing 🎉'! I'll let you know when the next session starts! Happy Learning!")
-  });
+  bot.api.users.info({user:message.user}, (err, res)=>{ 
+    console.log(res.user.name);
+    updatePerson('P2PL Tests',res.user.name, {"Active P2P":true}, (err, rec)=>{
+      if (err){
+        console.log("Error occurred");
+      }
+      bot.startPrivateConversation(message, (err, convo)=>{
+        convo.say("Amaaaaaaaaaaaazing 🎉'! I'll let you know when the next session starts! Happy Learning!")
+      });
+    })
+  })
 })
 
 controller.hears(["help","options"],["direct_message", "direct_mention"], function(bot, message){

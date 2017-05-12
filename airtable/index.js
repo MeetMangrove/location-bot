@@ -42,3 +42,26 @@ export const getAllPeople = (tableName, callback) => {
     return callback(undefined, people)
   })
 };
+
+export const getPerson = (tableName, slackHandle, callback) => {
+  base(tableName).select({
+    maxRecords: 1,
+    filterByFormula: "{Slack Handle} ='" + slackHandle + "'"
+  }).firstPage((err, records)=>{
+    if(err) { console.error(err); return;}
+    return callback(undefined, records[0]);
+  })
+}
+
+export const updatePerson = (tableName, slackHandle, obj, callback) => {
+  base(tableName).select({
+    maxRecords: 1,
+    filterByFormula: "{Slack Handle} ='" + slackHandle + "'"
+  }).firstPage((err, records)=>{
+    if(err) { console.error(err); return;}
+    base(tableName).update(records[0].id, obj, (err, rec)=>{
+      if(err) { console.error(err); return;}
+      return callback(undefined, rec);
+    })
+  })
+}
