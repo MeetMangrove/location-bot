@@ -19,7 +19,6 @@ APPLICANTS_TABLE="P2PL Applicants"
 PAIRINGS_TABLE="Pairings"
 ```
 
-
 ### Run the bot
 
 In local for development:
@@ -51,11 +50,3 @@ Heroku worker:
 ```bash
 $ npm run web
 ```
-
-To get a new token from oauth link:
-https://slack.com/oauth/authorize?scope=bot&client_id=24629294631.139251260599
-
-1) Run the app
-2) Authorize the application
-3) Look at the console
-4) Set the bot_access_token in the settings.json file
