@@ -7,7 +7,7 @@
     "fix": "./node_modules/.bin/eslint --fix main test; exit 0",
     "build": "babel main -d dist",
     "serve": "node dist/index.js",
-    "worker": "babel main -d dist; node --optimize_for_size --max_old_space_size=240 --gc_interval=100 dist/index.js ",
+    "web": "babel main -d dist; node --optimize_for_size --max_old_space_size=240 --gc_interval=100 dist/index.js ",
     "test": "mocha; exit 0",
     "pair": "babel-node tasks/pairAllApplicants"
   },
@@ -24,6 +24,7 @@
     "bipartite-matching": "1.0.0",
     "bluebird": "^3.5.0",
     "botkit": "^0.4.10",
+    "dotenv": "4.0.0",
     "express": "^4.14.1",
     "lodash": "^4.17.4",
     "long-timeout": "0.1.1",
@@ -32,10 +33,8 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "eslint": "3.19.0",
-    "eslint-config-airbnb": "14.1.0",
     "eslint-config-standard": "10.2.1",
     "eslint-plugin-import": "2.2.0",
-    "eslint-plugin-jsx-a11y": "4.0.0",
     "eslint-plugin-mocha": "4.9.0",
     "eslint-plugin-node": "4.2.2",
     "eslint-plugin-promise": "3.5.0",
@@ -52,7 +51,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/tjeanneau/mangrove-pairing/issues"
   },

@@ -1,6 +1,7 @@
 # Created by .ignore support plugin (hsz.mobi)
 .idea
 node_modules
+db_learningbot
 main/settings.js
 
 
