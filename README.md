@@ -49,7 +49,7 @@ $ npm run serve
 
 Heroku worker:
 ```bash
-$ npm run worker
+$ npm run web
 ```
 
 To get a new token from oauth link:
