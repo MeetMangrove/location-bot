@@ -4,7 +4,6 @@
 
 import Botkit from 'botkit'
 import settings from '../../settings'
-import { base } from '../../airtable/index'
 
 const { SLACK_BOT_TOKEN, SLACK_CLIENT_ID, SLACK_CLIENT_SECRET, PORT_BOT } = settings
 
@@ -44,4 +43,4 @@ controller.spawn({
   .configureIncomingWebhook({url: 'https://hooks.slack.com/services/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'})
   .startRTM()
 
-export { controller, base }
+export { controller }

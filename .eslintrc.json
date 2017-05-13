@@ -2,6 +2,10 @@
     "extends": "standard",
     "plugins": [
         "standard",
-        "promise"
-    ]
+        "promise",
+        "mocha"
+    ],
+    "rules": {
+        "mocha/no-exclusive-tests": "error"
+    }
 }

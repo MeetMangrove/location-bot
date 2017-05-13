@@ -9,7 +9,7 @@ import Promise from 'bluebird'
 import asyncForEach from 'async-foreach'
 import findIndex from 'lodash/findIndex'
 
-import { base } from './config/slackbot'
+import { base } from '../airtable/index'
 import settings from '../settings'
 
 const {SLACK_TOKEN: token} = settings
