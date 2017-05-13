@@ -1,13 +1,18 @@
 import _ from 'lodash'
 import findMatching from 'bipartite-matching'
 import { getAllApplicants, savePairing } from '../methods'
-import settings from '../settings'
 
-const {env} = process
-const {AIRTABLE_APPLICANTS, AIRTABLE_PAIRING} = settings
-// constants that can be overridden through environment variables
-export const APPLICANTS_TABLE = env.APPLICANTS_TABLE || AIRTABLE_APPLICANTS || 'P2PL Applicants'
-export const PAIRINGS_TABLE = env.PAIRINGS_TABLE || AIRTABLE_PAIRING || 'Pairings'
+require('dotenv').config()
+
+const {
+  AIRTABLE_APPLICANTS,
+  AIRTABLE_PAIRING
+} = process.env
+
+if (!AIRTABLE_APPLICANTS || !AIRTABLE_PAIRING) {
+  console.log('Error: Specify AIRTABLE_APPLICANTS and AIRTABLE_PAIRING in a .env file')
+  process.exit(1)
+}
 
 // Main pairing function:
 // - reads all applicants from Airtable
@@ -15,8 +20,8 @@ export const PAIRINGS_TABLE = env.PAIRINGS_TABLE || AIRTABLE_PAIRING || 'Pairing
 // - saves the pairing into Airtable and returns it
 // Different tables can be set up through options
 export const pairAllApplicants = async (opts = {}) => {
-  const aTable = opts.applicantsTable || APPLICANTS_TABLE
-  const pTable = opts.pairingsTable || PAIRINGS_TABLE
+  const aTable = opts.applicantsTable || AIRTABLE_APPLICANTS
+  const pTable = opts.pairingsTable || AIRTABLE_PAIRING
   console.log(`Pairing people in ${aTable}, saving in ${pTable}`)
   const people = await getAllApplicants(aTable)
   console.log(`Found ${people.length} people in ${aTable}`)

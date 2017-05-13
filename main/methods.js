@@ -6,9 +6,11 @@ import _ from 'lodash'
 import Promise from 'bluebird'
 
 import { base } from './airtable/index'
-import settings from './settings'
 
-const { AIRTABLE_APPLICANTS, AIRTABLE_PAIRING, SLACK_TOKEN: token } = settings
+const {
+  AIRTABLE_APPLICANTS,
+  AIRTABLE_PAIRING
+} = process.env
 
 // reads all records from a table
 export const _getAllRecords = (select) => {
@@ -27,9 +29,9 @@ export const _getAllRecords = (select) => {
 export const getApplicant = async (slackHandle) => {
   const applicant = await _getAllRecords(base(AIRTABLE_APPLICANTS).select({
     maxRecords: 1,
-    filterByFormula: "{Slack Handle} ='" + slackHandle + "'"
-  }))[0]
-  return applicant
+    filterByFormula: `{Slack Handle}='@${slackHandle}'`
+  }))
+  return applicant[0]
 }
 
 export const updateApplicant = async (slackHandle, obj) => {
@@ -47,7 +49,8 @@ export const updateApplicant = async (slackHandle, obj) => {
 export const getAllApplicants = async () => {
   const records = await _getAllRecords(base(AIRTABLE_APPLICANTS).select({
     view: 'Main View',
-    fields: ['Slack Handle', 'Interests', 'Skills', 'Admin']
+    fields: ['Slack Handle', 'Interests', 'Skills', 'Admin'],
+    filterByFormula: '{Inactive}=0'
   }))
   return _.reduce(records, (people, r) => {
     const name = (r.get('Slack Handle') || [])[0]
@@ -69,7 +72,7 @@ export const getAllApplicants = async () => {
  */
 export const getAllNoApplicants = async (bot) => {
   const apiUser = Promise.promisifyAll(bot.api.users)
-  const { members } = await apiUser.listAsync({token})
+  const {members} = await apiUser.listAsync({token: bot.config.token})
   const applicants = await getAllApplicants()
   const listMember = _.map(members, ({id, name}) => ({id, name}))
   const listApplicants = _.map(applicants, ({name}) => name)

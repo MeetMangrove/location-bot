@@ -13,11 +13,13 @@ import {
   getApplicant
 } from '../methods'
 import { pairAllApplicants } from '../pairing'
-import { controller } from './config/slackbot'
+import { controller } from './config'
 
 import pairingConversation from './pairingConversation'
 import startAPairingSession from './startAPairingSession'
 import firstTimeConversation from './firstTimeConversation'
+
+require('dotenv').config()
 
 const {forEach} = asyncForEach
 
@@ -65,7 +67,7 @@ controller.hears('send message to no-applicants', ['direct_message', 'direct_men
       bot.reply(message, 'Okay, I send a message to all people who are not applicants yet!')
       const noApplicants = await getAllNoApplicants(bot)
       console.log(noApplicants)
-      forEach(noApplicants, async function ({ id, name }) {
+      forEach(noApplicants, async function ({id, name}) {
         const done = this.async()
         // For each member, start a firstTimeConversation
         if (name === 'thomas') { // Remove this if statement for production
@@ -95,52 +97,51 @@ controller.hears(['Hello', 'Yo', 'Hey', 'Hi', 'Ouch'], 'direct_message', async (
 })
 
 controller.hears('status', 'direct_message', async (bot, message) => {
-  // TODO
-  console.log('status')
-  bot.api.users.info({user: message.user}, (err, res) => {
-    console.log(res.user.name)
-    getApplicant('P2PL Tests', res.user.name, (err, rec) => {
-      console.log(rec.id)
-      const status = rec.get('Active P2P') ? 'active' : 'inactive'
-      bot.startPrivateConversation(message, (err, convo) => {
-        convo.say('Hi, Your current status is: ' + status)
-        convo.say('You can change your status by messaging me with `start` or `stop`')
-      })
+  try {
+    const apiUser = Promise.promisifyAll(bot.api.users)
+    const { user } = await apiUser.infoAsync({user: message.user})
+    const rec = await getApplicant(user.name)
+    const status = rec.get('Inactive') === false ? 'inactive' : 'active'
+    bot.startPrivateConversation(message, (err, convo) => {
+      if (err) return console.log(err)
+      convo.say('Hi, Your current status is: ' + status)
+      convo.say('You can change your status by messaging me with `start` or `stop`')
     })
-  })
+  } catch (e) {
+    console.log(e)
+    bot.reply(message, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
+  }
 })
 
 controller.hears('stop', 'direct_message', async (bot, message) => {
-  // TODO
-  console.log('stop')
-  bot.api.users.info({user: message.user}, (err, res) => {
-    console.log(res.user.name)
-    updateApplicant('P2PL Tests', res.user.name, {'Active P2P': false}, (err, rec) => {
-      if (err) {
-        console.log('Error occurred')
-      }
-      bot.startPrivateConversation(message, (err, convo) => {
-        convo.say('Okay 😥, sorry to see you go.')
-        convo.say('You can start again by messaging me with `start`.')
-      })
+  try {
+    const apiUser = Promise.promisifyAll(bot.api.users)
+    const { user } = await apiUser.infoAsync({user: message.user})
+    await updateApplicant(user.name, {'Inactive': true})
+    bot.startPrivateConversation(message, (err, convo) => {
+      if (err) return console.log(err)
+      convo.say('Okay 😥, sorry to see you go.')
+      convo.say('You can start again by messaging me with `start`.')
     })
-  })
+  } catch (e) {
+    console.log(e)
+    bot.reply(message, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
+  }
 })
 
 controller.hears('start', 'direct_message', async (bot, message) => {
-  // TODO
-  console.log('start')
-  bot.api.users.info({user: message.user}, (err, res) => {
-    console.log(res.user.name)
-    updateApplicant('P2PL Tests', res.user.name, {'Active P2P': true}, (err, rec) => {
-      if (err) {
-        console.log('Error occurred')
-      }
-      bot.startPrivateConversation(message, (err, convo) => {
-        convo.say('Amaaaaaaaaaaaazing 🎉\'! I\'ll let you know when the next session starts! Happy Learning!')
-      })
+  try {
+    const apiUser = Promise.promisifyAll(bot.api.users)
+    const { user } = await apiUser.infoAsync({user: message.user})
+    await updateApplicant(user.name, {'Inactive': false})
+    bot.startPrivateConversation(message, (err, convo) => {
+      if (err) return console.log(err)
+      convo.say('Amaaaaaaaaaaaazing 🎉\'! I\'ll let you know when the next session starts! Happy Learning!')
     })
-  })
+  } catch (e) {
+    console.log(e)
+    bot.reply(message, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
+  }
 })
 
 controller.hears('applicants', ['direct_message', 'direct_mention'], async (bot, message) => {
@@ -174,71 +175,8 @@ controller.hears('applicants', ['direct_message', 'direct_mention'], async (bot,
 controller.hears(['help', 'options'], ['direct_message', 'direct_mention'], async (bot, message) => {
   bot.reply(message, `Hi, I'm the Learning Bot. You can message me one of the following things: \n
     \`help\` - this information\n
-    \`first-time\` - an intro to the bot\n
     \`status\` - find out if you're active to be paired in the next session\n
     \`stop\` - stop being paired\n
     \`start\` - start being paired\n
     That's it. Happy Learning!`)
-})
-
-controller.hears('interactive', 'direct_message', function (bot, message) {
-  bot.reply(message, {
-    attachments: [
-      {
-        title: 'Do you want to interact with my buttons?',
-        callback_id: '123',
-        attachment_type: 'default',
-        actions: [
-          {
-            'name': 'yes',
-            'text': 'Yes',
-            'value': 'yes',
-            'type': 'button'
-          },
-          {
-            'name': 'no',
-            'text': 'No',
-            'value': 'no',
-            'type': 'button'
-          }
-        ]
-      }
-    ]
-  })
-})
-
-controller.on('interactive_message_callback', function (bot, message) {
-  // check message.actions and message.callback_id to see what action to take...
-
-  bot.replyInteractive(message, {
-    text: '...',
-    attachments: [
-      {
-        title: 'My buttons',
-        callback_id: '123',
-        attachment_type: 'default',
-        actions: [
-          {
-            'name': 'yes',
-            'text': 'Yes!',
-            'value': 'yes',
-            'type': 'button'
-          },
-          {
-            'text': 'No!',
-            'name': 'no',
-            'value': 'delete',
-            'style': 'danger',
-            'type': 'button',
-            'confirm': {
-              'title': 'Are you sure?',
-              'text': 'This will do something!',
-              'ok_text': 'Yes',
-              'dismiss_text': 'No'
-            }
-          }
-        ]
-      }
-    ]
-  })
 })

@@ -7,14 +7,12 @@ import Promise from 'bluebird'
 import asyncForEach from 'async-foreach'
 
 import { getMembersPaired } from '../methods'
-import settings from '../settings'
 
-const { SLACK_TOKEN: token } = settings
 const { forEach } = asyncForEach
 
 export default async (bot) => {
   const apiUser = Promise.promisifyAll(bot.api.users)
-  const { members } = await apiUser.listAsync({ token })
+  const { members } = await apiUser.listAsync({ token: bot.config.token })
   const botSay = Promise.promisify(bot.say)
   const list = _.map(members, member => _.pick(member, ['id', 'name']))
   const membersPaired = await getMembersPaired()

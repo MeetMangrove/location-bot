@@ -4,4 +4,3 @@
 
 import 'babel-polyfill'
 import './learningbot/hears'
-import './learningbot/config/slackApiToken'
