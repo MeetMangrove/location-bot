@@ -31,7 +31,6 @@ const controller = Botkit.slackbot({
 controller.configureSlackApp({
   clientId: SLACK_CLIENT_ID,
   clientSecret: SLACK_CLIENT_SECRET,
-  redirectUri: SLACK_REDIRECT_URI,
   scopes: ['bot', 'groups:history', 'groups:read', 'groups:write', 'users:read', 'users:read.email']
 })
 
