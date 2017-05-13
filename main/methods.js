@@ -4,10 +4,14 @@
 
 import _ from 'lodash'
 import Promise from 'bluebird'
+
 import { base } from './airtable/index'
+import settings from './settings'
+
+const { AIRTABLE_APPLICANTS, AIRTABLE_PAIRING, SLACK_TOKEN: token } = settings
 
 // reads all records from a table
-const _getAllRecords = (select) => {
+export const _getAllRecords = (select) => {
   return new Promise((resolve, reject) => {
     let allRecords = []
     select.eachPage(function page (records, fetchNextPage) {
@@ -20,13 +24,28 @@ const _getAllRecords = (select) => {
   })
 }
 
+export const getApplicant = async (slackHandle) => {
+  const applicant = await _getAllRecords(base(AIRTABLE_APPLICANTS).select({
+    maxRecords: 1,
+    filterByFormula: "{Slack Handle} ='" + slackHandle + "'"
+  }))[0]
+  return applicant
+}
+
+export const updateApplicant = async (slackHandle, obj) => {
+  const update = Promise.promisify(base(AIRTABLE_APPLICANTS).update)
+  const { id } = await getApplicant(slackHandle)
+  const applicant = update(id, obj)
+  return applicant
+}
+
 /* reads all applicants from Airtable, and returns them as an Array of
  {name: String,
  interests: [String],
  skills: [String]}
  */
 export const getAllApplicants = async () => {
-  const records = await _getAllRecords(base('P2PL Applicants').select({
+  const records = await _getAllRecords(base(AIRTABLE_APPLICANTS).select({
     view: 'Main View',
     fields: ['Slack Handle', 'Interests', 'Skills', 'Admin']
   }))
@@ -44,12 +63,26 @@ export const getAllApplicants = async () => {
   }, [])
 }
 
+/* reads all members from Slack, and returns them as an Array of
+ {name: String,
+ id: String}
+ */
+export const getAllNoApplicants = async (bot) => {
+  const apiUser = Promise.promisifyAll(bot.api.users)
+  const { members } = await apiUser.listAsync({token})
+  const applicants = await getAllApplicants()
+  const listMember = _.map(members, ({id, name}) => ({id, name}))
+  const listApplicants = _.map(applicants, ({name}) => name)
+  _.remove(listMember, ({name}) => listApplicants.indexOf(name) === -1)
+  return listMember
+}
+
 // reads all admins applicants from Airtable, and returns
 // a boolean checking if the current user is an admin or not.
 export const checkIfAdmin = async (bot, message) => {
   const admins = []
   const apiUser = Promise.promisifyAll(bot.api.users)
-  const records = await _getAllRecords(base('P2PL Applicants').select({
+  const records = await _getAllRecords(base(AIRTABLE_APPLICANTS).select({
     view: 'Main View',
     filterByFormula: '{Admin}=1'
   }))
@@ -73,7 +106,7 @@ export const checkIfAdmin = async (bot, message) => {
 export const getMembersPaired = async () => {
   const applicants = await getAllApplicants()
   const members = _.map(applicants, ({name}) => ({name, isLearner: false, isTeacher: false}))
-  const records = await _getAllRecords(base('Pairings').select({
+  const records = await _getAllRecords(base(AIRTABLE_PAIRING).select({
     view: 'Main View',
     filterByFormula: '{Bot Introduction}=0'
   }))
@@ -93,6 +126,15 @@ export const getMembersPaired = async () => {
     members[indexTeacher].teaching = skill
   })
   return members
+}
+
+export const getPairingNotIntroduced = async () => {
+  const pairings = await _getAllRecords(base(AIRTABLE_PAIRING).select({
+    view: 'Main View',
+    fields: ['Teacher', 'Learner', 'Skill', 'Paired On'],
+    filterByFormula: '{Introduced}=0'
+  }))[0]
+  return pairings
 }
 
 // reads a Pairing from Airtable
@@ -119,14 +161,8 @@ export const getPairing = async (tableName, pairingId) => {
 // saves a Pairing to Airtable
 export const savePairing = async (tableName, pairing) => {
   // ensure we have the proper structure
-  if (!pairing.id) {
-    console.log('missing pairing.id')
-    return
-  }
-  if (!_.isArray(pairing.pairs)) {
-    console.log('invalid pairing.pairs')
-    return
-  }
+  if (!pairing.id) return console.log('missing pairing.id')
+  if (!_.isArray(pairing.pairs)) return console.log('invalid pairing.pairs')
   // write the pairs to Airtable
   const create = Promise.promisify(base(tableName).create)
   await Promise.map(pairing.pairs, (pair) => {

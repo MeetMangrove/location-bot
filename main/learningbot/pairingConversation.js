@@ -8,76 +8,59 @@ import asyncForEach from 'async-foreach'
 
 import { base } from '../airtable/index'
 import settings from '../settings'
+import { getPairingNotIntroduced } from '../methods'
 
-const {SLACK_TOKEN: token} = settings
+const {SLACK_TOKEN: token, AIRTABLE_PAIRING} = settings
 const {forEach} = asyncForEach
 
-export const pairingConversation = async (bot, message, membersPaired) => {
+export default async (bot, message, membersPaired) => {
   const apiUser = Promise.promisifyAll(bot.api.users)
   const apiGroups = Promise.promisifyAll(bot.api.groups)
-  const airtableUpdate = Promise.promisify(base('Pairings').update)
+  const airtableUpdate = Promise.promisify(base(AIRTABLE_PAIRING).update)
   const botSay = Promise.promisify(bot.say)
   const {members} = await apiUser.listAsync({token})
   const list = _.map(members, member => _.pick(member, ['id', 'name']))
-  return new Promise((resolve, reject) => {
-    base('Pairings').select({
-      view: 'Main View',
-      filterByFormula: '{Bot Introduction}=0'
-    }).eachPage(function page (records, fetchNextPage) {
-      forEach(records, async function (record) {
-        const done = this.async()
-        const teacher = _.find(list, ['name', record.get('Teacher')])
-        const learner = _.find(list, ['name', record.get('Learner')])
-        const indexTeacher = _.findIndex(membersPaired, e => e.name === teacher.name)
-        const skill = membersPaired[indexTeacher].teaching
-        const {groups} = await apiGroups.listAsync({token})
-        const groupName = `p2pl_${teacher.name.substring(0, 8)}_${learner.name.substring(0, 8)}`
-        const group = _.find(groups, ['name', groupName])
-        let groupId
-        if (group) {
-          groupId = group.id
-          if (group.is_archived === true) await apiGroups.unarchiveAsync({token, channel: groupId})
-        } else {
-          const groupsCreate = await apiGroups.createAsync({token, name: groupName})
-          groupId = groupsCreate.group.id
-        }
-        if (teacher.id !== message.user) {
-          await apiGroups.inviteAsync({
-            token,
-            channel: groupId,
-            user: teacher.id
-          })
-        }
+  const pairingsNotIntroduced = await getPairingNotIntroduced()
+  forEach(pairingsNotIntroduced, async function (pairing) {
+    const done = this.async()
+    const teacher = _.find(list, ['name', pairing.get('Teacher')])
+    const learner = _.find(list, ['name', pairing.get('Learner')])
+    const indexTeacher = _.findIndex(membersPaired, e => e.name === teacher.name)
+    const skill = membersPaired[indexTeacher].teaching
+    const {groups} = await apiGroups.listAsync({token})
+    const groupName = `p2pl_${teacher.name.substring(0, 8)}_${learner.name.substring(0, 8)}`
+    const group = _.find(groups, ['name', groupName])
+    let groupId
+    if (group) {
+      groupId = group.id
+      if (group.is_archived === true) await apiGroups.unarchiveAsync({token, channel: groupId})
+    } else {
+      const groupsCreate = await apiGroups.createAsync({token, name: groupName})
+      groupId = groupsCreate.group.id
+    }
+    if (teacher.id !== message.user) {
+      await apiGroups.inviteAsync({
+        token,
+        channel: groupId,
+        user: teacher.id
+      })
+    }
 
-        if (learner.id !== message.user) {
-          await apiGroups.inviteAsync({
-            token,
-            channel: groupId,
-            user: learner.id
-          })
-        }
-        await apiGroups.inviteAsync({token, channel: groupId, user: bot.identifyBot().id})
-        await airtableUpdate(record.id, {'Bot Introduction': true})
-        await botSay({
-          text: 'Hey guys! I\'ve paired you this month :smile:',
-          channel: groupId
-        })
-        await botSay({
-          text: `<@${teacher.name}>: <@${learner.name}> would like to know more about *${skill}*. I'm sure you have a lot to share!`,
-          channel: groupId
-        })
-        await botSay({
-          text: `I let you two arrange a meeting together, let me know about the date :blush:.`,
-          channel: groupId
-        })
-        done()
-      }, fetchNextPage)
-    }, function done (err) {
-      if (err) {
-        reject(err)
-        return
-      }
-      resolve()
+    if (learner.id !== message.user) {
+      await apiGroups.inviteAsync({
+        token,
+        channel: groupId,
+        user: learner.id
+      })
+    }
+    await apiGroups.inviteAsync({token, channel: groupId, user: bot.identifyBot().id})
+    await airtableUpdate(pairing.id, {'Introduced': true})
+    await botSay({
+      text: `Hey guys! I\'ve paired you this month :smile:\n
+      <@${teacher.name}>: <@${learner.name}> would like to know more about *${skill}*. I'm sure you have a lot to share!\n
+      I let you two arrange a meeting together, let me know about the date :blush:.`,
+      channel: groupId
     })
+    done()
   })
 }

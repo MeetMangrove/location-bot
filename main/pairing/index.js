@@ -1,11 +1,13 @@
 import _ from 'lodash'
 import findMatching from 'bipartite-matching'
 import { getAllApplicants, savePairing } from '../methods'
+import settings from '../settings'
 
 const {env} = process
+const {AIRTABLE_APPLICANTS, AIRTABLE_PAIRING} = settings
 // constants that can be overridden through environment variables
-export const APPLICANTS_TABLE = env.APPLICANTS_TABLE || 'P2PL Applicants'
-export const PAIRINGS_TABLE = env.PAIRINGS_TABLE || 'Pairings'
+export const APPLICANTS_TABLE = env.APPLICANTS_TABLE || AIRTABLE_APPLICANTS || 'P2PL Applicants'
+export const PAIRINGS_TABLE = env.PAIRINGS_TABLE || AIRTABLE_PAIRING || 'Pairings'
 
 // Main pairing function:
 // - reads all applicants from Airtable
