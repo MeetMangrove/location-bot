@@ -3,7 +3,7 @@
 import 'babel-polyfill'
 import _ from 'lodash'
 import { expect } from './helper'
-import { getAllPeople, getPairing, savePairing, destroyPairing } from '../main/methods'
+import { getAllApplicants, getPairing, savePairing, destroyPairing } from '../main/methods'
 
 const PAIRINGS_TABLE = 'Pairings'
 const SKILLS = ['Node.js', 'UX Design']
@@ -27,7 +27,7 @@ function _expectValidPairing (pairing) {
 describe('airtable', function () {
   describe('.getAllPeople with the \'P2PL Applicants\' table', function () {
     it('retrieves people, skills and interests', async () => {
-      const people = await getAllPeople('P2PL Applicants')
+      const people = await getAllApplicants()
       expect(people).to.be.an('array')
       expect(people).not.to.be.empty
       people.forEach(function (person) {

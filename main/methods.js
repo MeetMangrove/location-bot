@@ -4,16 +4,7 @@
 
 import _ from 'lodash'
 import Promise from 'bluebird'
-import asyncForEach from 'async-foreach'
 import { base } from './airtable/index'
-
-const {forEach} = asyncForEach
-
-// return member fields as an object
-const _getMember = async (id) => {
-  const {fields} = await Promise.promisify(base('Members').find)(id)
-  return fields
-}
 
 // reads all records from a table
 const _getAllRecords = (select) => {
@@ -35,27 +26,22 @@ const _getAllRecords = (select) => {
  skills: [String]}
  */
 export const getAllApplicants = async () => {
-  const people = []
   const records = await _getAllRecords(base('P2PL Applicants').select({
     view: 'Main View',
-    fields: ['Applicant', 'Interests', 'Skills']
+    fields: ['Slack Handle', 'Interests', 'Skills', 'Admin']
   }))
-  forEach(records, async function (record) {
-    const done = this.async()
-    const interests = record.get('Interests')
-    const skills = record.get('Skills')
-    const {'Slack Handle': name} = await _getMember(record.get('Applicant'))
-    // require name, default skills and interests to []
+  return _.reduce(records, (people, r) => {
+    const name = (r.get('Slack Handle') || [])[0]
     if (name && name.length) {
       people.push({
-        name,
-        interests: (interests || []),
-        skills: (skills || [])
+        name: name.replace(/^@/, ''),
+        interests: (r.get('Interests') || []),
+        skills: (r.get('Skills') || []),
+        isAdmin: !!r.get('Admin')
       })
     }
-    done()
-  })
-  return people
+    return people
+  }, [])
 }
 
 // reads all admins applicants from Airtable, and returns
@@ -67,14 +53,12 @@ export const checkIfAdmin = async (bot, message) => {
     view: 'Main View',
     filterByFormula: '{Admin}=1'
   }))
-  forEach(records, async function (record) {
-    const done = this.async()
-    const {'Slack Handle': name} = await _getMember(record.get('Applicant'))
-    admins.push(name)
-    done()
+  records.forEach((record) => {
+    const name = record.get('Slack Handle')[0]
+    admins.push(name.replace(/^@/, ''))
   })
   const {user: {name}} = await apiUser.infoAsync({user: message.user})
-  return admins.indexOf(`@${name}`) >= 0
+  return admins.indexOf(name) >= 0
 }
 
 /* reads all pairing from Airtable, and returns them as an Array of
@@ -109,29 +93,6 @@ export const getMembersPaired = async () => {
     members[indexTeacher].teaching = skill
   })
   return members
-}
-
-// reads all people from Airtable, and returns them
-// as an Array of
-//  {name: String, interests: [String], skills: [String]}
-export const getAllPeople = async (applicantsTableName) => {
-  // Code below handles the structure of the new P2PL Applicants table
-  const records = await _getAllRecords(base(applicantsTableName).select({
-    view: 'Main View',
-    fields: ['Slack Handle', 'Interests', 'Skills', 'Admin']
-  }))
-  return _.reduce(records, (people, r) => {
-    const name = (r.get('Slack Handle') || [])[0]
-    if (name && name.length) {
-      people.push({
-        name: name.replace(/^@/, ''),
-        interests: (r.get('Interests') || []),
-        skills: (r.get('Skills') || []),
-        isAdmin: !!r.get('Admin')
-      })
-    }
-    return people
-  }, [])
 }
 
 // reads a Pairing from Airtable

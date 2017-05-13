@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import findMatching from 'bipartite-matching'
-import { getAllPeople, savePairing } from '../methods'
+import { getAllApplicants, savePairing } from '../methods'
 
 const {env} = process
 // constants that can be overridden through environment variables
@@ -16,11 +16,12 @@ export const pairAllApplicants = async (opts = {}) => {
   const aTable = opts.applicantsTable || APPLICANTS_TABLE
   const pTable = opts.pairingsTable || PAIRINGS_TABLE
   console.log(`Pairing people in ${aTable}, saving in ${pTable}`)
-  const people = await getAllPeople(aTable)
+  const people = await getAllApplicants(aTable)
   console.log(`Found ${people.length} people in ${aTable}`)
   const pairing = await generatePairing(people)
   console.log(`Saving ${pairing.pairs.length} pairs to ${pTable}, id=${pairing.id}`)
   await savePairing(pTable, pairing)
+  return pairing
 }
 
 // takes an Array of people represented as

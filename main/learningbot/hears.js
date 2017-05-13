@@ -20,7 +20,7 @@ controller.hears('applicants', ['direct_message', 'direct_mention', 'mention'], 
     forEach(people, async function (person) {
       const done = this.async()
       await botReply(message, {
-        'text': `:sparkles: <${person.name}> :sparkles:`,
+        'text': `:sparkles: <@${person.name}> :sparkles:`,
         'attachments': [
           {
             'title': ':sleuth_or_spy: Interests',
