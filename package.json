@@ -6,7 +6,8 @@
     "build": "babel bot -d dist",
     "serve": "node dist/index.js",
     "worker": "babel bot -d dist; node --optimize_for_size --max_old_space_size=240 --gc_interval=100 dist/index.js ",
-    "test": "mocha"
+    "test": "mocha",
+    "pair": "babel-node tasks/pairAllApplicants"
   },
   "engines": {
     "node": "7.7.3"
@@ -21,7 +22,6 @@
     "botkit": "^0.4.10",
     "express": "^4.14.1",
     "lodash": "^4.17.4",
-    "python-shell": "^0.4.0",
     "request": "^2.79.0"
   },
   "devDependencies": {
