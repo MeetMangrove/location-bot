@@ -8,12 +8,11 @@ const _bots = {}
 const {
   SLACK_CLIENT_ID,
   SLACK_CLIENT_SECRET,
-  SLACK_REDIRECT_URI,
   PORT
 } = process.env
 
-if (!SLACK_CLIENT_ID || !SLACK_CLIENT_SECRET || !SLACK_REDIRECT_URI || !PORT) {
-  console.log('Error: Specify SLACK_CLIENT_ID, SLACK_CLIENT_SECRET, SLACK_REDIRECT_URI and PORT in a .env file')
+if (!SLACK_CLIENT_ID || !SLACK_CLIENT_SECRET || !PORT) {
+  console.log('Error: Specify SLACK_CLIENT_ID, SLACK_CLIENT_SECRET and PORT in a .env file')
   process.exit(1)
 }
 
