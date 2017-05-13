@@ -2,12 +2,9 @@
  * Created by thomasjeanneau on 20/03/2017.
  */
 
-import pick from 'lodash/pick'
-import find from 'lodash/find'
-import map from 'lodash/map'
+import _ from 'lodash'
 import Promise from 'bluebird'
 import asyncForEach from 'async-foreach'
-import findIndex from 'lodash/findIndex'
 
 import { base } from '../airtable/index'
 import settings from '../settings'
@@ -21,7 +18,7 @@ export const pairingConversation = async (bot, message, membersPaired) => {
   const airtableUpdate = Promise.promisify(base('Pairings').update)
   const botSay = Promise.promisify(bot.say)
   const {members} = await apiUser.listAsync({token})
-  const list = map(members, member => pick(member, ['id', 'name']))
+  const list = _.map(members, member => _.pick(member, ['id', 'name']))
   return new Promise((resolve, reject) => {
     base('Pairings').select({
       view: 'Main View',
@@ -29,13 +26,13 @@ export const pairingConversation = async (bot, message, membersPaired) => {
     }).eachPage(function page (records, fetchNextPage) {
       forEach(records, async function (record) {
         const done = this.async()
-        const teacher = find(list, ['name', record.get('Teacher')])
-        const learner = find(list, ['name', record.get('Learner')])
-        const indexTeacher = findIndex(membersPaired, e => e.name === teacher.name)
+        const teacher = _.find(list, ['name', record.get('Teacher')])
+        const learner = _.find(list, ['name', record.get('Learner')])
+        const indexTeacher = _.findIndex(membersPaired, e => e.name === teacher.name)
         const skill = membersPaired[indexTeacher].teaching
         const {groups} = await apiGroups.listAsync({token})
         const groupName = `p2pl_${teacher.name.substring(0, 8)}_${learner.name.substring(0, 8)}`
-        const group = find(groups, ['name', groupName])
+        const group = _.find(groups, ['name', groupName])
         let groupId
         if (group) {
           groupId = group.id

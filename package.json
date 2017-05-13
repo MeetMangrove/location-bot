@@ -39,7 +39,6 @@
     "eslint-plugin-mocha": "4.9.0",
     "eslint-plugin-node": "4.2.2",
     "eslint-plugin-promise": "3.5.0",
-    "eslint-plugin-react": "6.10.3",
     "eslint-plugin-standard": "3.0.1",
     "mocha": "^3.3.0",
     "nodemon": "^1.11.0"

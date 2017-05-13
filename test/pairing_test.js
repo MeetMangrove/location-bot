@@ -1,7 +1,9 @@
+/* eslint-disable no-unused-expressions */
+
 import 'babel-polyfill'
 import _ from 'lodash'
-import {expect} from './helper'
-import {generatePairing} from '../main/pairing'
+import { expect } from './helper'
+import { generatePairing } from '../main/pairing'
 
 // helpers to inspect a pairing
 function _pairingSize (pairing) {
@@ -23,18 +25,17 @@ describe('.generatePairing', function () {
       ]
     })
 
-    it('works', function () {
-      return generatePairing(this.people).then((pairing) => {
-        expect(pairing.id).to.be.a('string')
-        expect(pairing.isComplete).to.be.true
-        expect(_pairingSize(pairing)).to.eq(2)
-        expect(_pairingTeachers(pairing)).to.eql(['alice', 'bob'])
-        expect(_pairingLearners(pairing)).to.eql(['alice', 'bob'])
-      })
+    it('works', async function () {
+      const pairing = await generatePairing(this.people)
+      expect(pairing.id).to.be.a('string')
+      expect(pairing.isComplete).to.be.true
+      expect(_pairingSize(pairing)).to.eq(2)
+      expect(_pairingTeachers(pairing)).to.eql(['alice', 'bob'])
+      expect(_pairingLearners(pairing)).to.eql(['alice', 'bob'])
     })
   })
 
-  context("when one person can't be paired", function () {
+  context('when one person can\'t be paired', function () {
     beforeEach(function () {
       this.people = [
         {name: 'alice', skills: ['js'], interests: ['ruby']},
@@ -44,16 +45,15 @@ describe('.generatePairing', function () {
       ]
     })
 
-    it('results in an incomplete pairing', function () {
-      return generatePairing(this.people).then((pairing) => {
-        expect(pairing.id).to.be.a('string')
-        expect(pairing.isComplete).to.be.false
-        // expect 2 pairs
-        expect(_pairingSize(pairing)).to.eq(2)
-        // expect alice to be both a learner and a teacher
-        expect(_pairingTeachers(pairing)).to.include('alice')
-        expect(_pairingLearners(pairing)).to.include('alice')
-      })
+    it('results in an incomplete pairing', async function () {
+      const pairing = await generatePairing(this.people)
+      expect(pairing.id).to.be.a('string')
+      expect(pairing.isComplete).to.be.false
+      // expect 2 pairs
+      expect(_pairingSize(pairing)).to.eq(2)
+      // expect alice to be both a learner and a teacher
+      expect(_pairingTeachers(pairing)).to.include('alice')
+      expect(_pairingLearners(pairing)).to.include('alice')
     })
   })
 })

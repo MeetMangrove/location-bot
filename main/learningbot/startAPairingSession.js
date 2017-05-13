@@ -2,10 +2,8 @@
  * Created by thomasjeanneau on 20/03/2017.
  */
 
+import _ from 'lodash'
 import Promise from 'bluebird'
-import pick from 'lodash/pick'
-import find from 'lodash/find'
-import map from 'lodash/map'
 import asyncForEach from 'async-foreach'
 
 import { getMembersPaired } from '../methods'
@@ -18,11 +16,11 @@ export const startAPairingSession = async (bot) => {
   const apiUser = Promise.promisifyAll(bot.api.users)
   const { members } = await apiUser.listAsync({ token })
   const botSay = Promise.promisify(bot.say)
-  const list = map(members, member => pick(member, ['id', 'name']))
+  const list = _.map(members, member => _.pick(member, ['id', 'name']))
   const membersPaired = await getMembersPaired()
   forEach(membersPaired, async function (member) {
     const done = this.async()
-    const channel = find(list, ['name', member.name.substr(1)]).id
+    const channel = _.find(list, ['name', member.name.substr(1)]).id
     const { isLearner, teacherName, learning, isTeacher, learnerName, teaching } = member
     if (isLearner === true && isTeacher === false) {
       await botSay({
