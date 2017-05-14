@@ -83,6 +83,7 @@ controller.hears('^send presentation message to no-applicants$', ['direct_messag
         if (NODE_ENV === 'PRODUCTION') {
           firstTimeConversation(bot, {user: id}, {name})
         } else {
+          firstTimeConversation(bot, {user: id}, {name})
           console.log('Send to', name)
         }
         done()
@@ -99,7 +100,7 @@ controller.hears('^send presentation message to no-applicants$', ['direct_messag
 
 // Applicants Commands
 
-controller.hears(['^Hello$', 'Yo$', '^Hey$', '^Hi$', '^Ouch$'], ['direct_message', 'direct_mention'], async (bot, message) => {
+controller.hears(['^Hello$', '^Yo$', '^Hey$', '^Hi$', '^Ouch$'], ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
     if (await checkIfFirstTime(bot, message) === false) return
     const name = await getUserName(bot, message)
