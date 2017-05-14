@@ -10,7 +10,9 @@ import {
   getAllApplicants,
   getAllNoApplicants,
   updateApplicant,
-  getApplicant
+  getApplicant,
+  getUserName,
+  checkIfFirstTime
 } from '../methods'
 import { pairAllApplicants } from '../pairing'
 import { controller } from './config'
@@ -21,19 +23,25 @@ import firstTimeConversation from './firstTimeConversation'
 
 require('dotenv').config()
 
-const {forEach} = asyncForEach
+const { forEach } = asyncForEach
+const { NODE_ENV } = process.env
+
+if (!NODE_ENV) {
+  console.log('Error: Specify in a .env file')
+  process.exit(1)
+}
 
 // Admin Commands
 
-controller.hears('pair all applicants', ['direct_message', 'direct_mention'], async (bot, message) => {
+controller.hears('^pair all applicants$', ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
+    if (await checkIfFirstTime(bot, message) === false) return
     const isAdmin = await checkIfAdmin(bot, message)
     if (isAdmin) {
-      bot.reply(message, 'Ok, I\'ll start pairing people')
-      // generate pairing
+      const botReply = Promise.promisify(bot.reply)
+      await botReply(message, 'Ok, I\'ll start pairing people')
       const pairing = await pairAllApplicants()
-      // notify about the pairing
-      bot.reply(message, `Pairing done, saved to Airtable.\n It contains ${pairing.pairs.length} pairs.`)
+      await botReply(message, `Pairing done, saved to Airtable.\n It contains ${pairing.pairs.length} pairs.`)
     } else {
       bot.reply(message, 'Sorry but it looks like you\'re not an admin. You can\'t use this feature.')
     }
@@ -43,14 +51,16 @@ controller.hears('pair all applicants', ['direct_message', 'direct_mention'], as
   }
 })
 
-controller.hears('introduce new pairings', ['direct_message', 'direct_mention'], async (bot, message) => {
+controller.hears('^introduce new pairings$', ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
+    if (await checkIfFirstTime(bot, message) === false) return
     const isAdmin = await checkIfAdmin(bot, message)
     if (isAdmin) {
-      bot.reply(message, 'Ok, I\'ll start introducing people :sparkles: ')
+      const botReply = Promise.promisify(bot.reply)
+      await botReply(message, 'Ok, I\'ll start introducing people :sparkles: ')
       const membersPaired = await startAPairingSession(bot, message)
       await pairingConversation(bot, message, membersPaired)
-      bot.reply(message, 'All people have been introduced :rocket:')
+      await botReply(message, 'All people have been introduced :rocket:')
     } else {
       bot.reply(message, 'Sorry but it looks like you\'re not an admin. You can\'t use this feature.')
     }
@@ -60,22 +70,24 @@ controller.hears('introduce new pairings', ['direct_message', 'direct_mention'],
   }
 })
 
-controller.hears('send message to no-applicants', ['direct_message', 'direct_mention'], async (bot, message) => {
+controller.hears('^send presentation message to no-applicants$', ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
+    if (await checkIfFirstTime(bot, message) === false) return
     const isAdmin = await checkIfAdmin(bot, message)
     if (isAdmin) {
-      bot.reply(message, 'Okay, I send a message to all people who are not applicants yet!')
+      const botReply = Promise.promisify(bot.reply)
+      await botReply(message, 'Okay, I send a message to all people who are not applicants yet!')
       const noApplicants = await getAllNoApplicants(bot)
-      console.log(noApplicants)
       forEach(noApplicants, async function ({id, name}) {
         const done = this.async()
-        // For each member, start a firstTimeConversation
-        if (name === 'thomas') { // Remove this if statement for production
+        if (NODE_ENV === 'PRODUCTION') {
           firstTimeConversation(bot, {user: id}, {name})
+        } else {
+          console.log('Send to', name)
         }
         done()
       })
-      bot.reply(message, 'All done!')
+      await botReply(message, 'All done! :rocket:')
     } else {
       bot.reply(message, 'Sorry but it looks like you\'re not an admin. You can\'t use this feature.')
     }
@@ -87,25 +99,15 @@ controller.hears('send message to no-applicants', ['direct_message', 'direct_men
 
 // Applicants Commands
 
-controller.hears(['Hello', 'Yo', 'Hey', 'Hi', 'Ouch'], 'direct_message', async (bot, message) => {
+controller.hears(['^Hello$', 'Yo$', '^Hey$', '^Hi$', '^Ouch$'], ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
-    await firstTimeConversation(bot, message, {name: ''})
-  } catch (e) {
-    console.log(e)
-    bot.reply(message, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
-  }
-})
-
-controller.hears('status', 'direct_message', async (bot, message) => {
-  try {
-    const apiUser = Promise.promisifyAll(bot.api.users)
-    const { user } = await apiUser.infoAsync({user: message.user})
-    const rec = await getApplicant(user.name)
-    const status = rec.get('Inactive') === false ? 'inactive' : 'active'
-    bot.startPrivateConversation(message, (err, convo) => {
+    if (await checkIfFirstTime(bot, message) === false) return
+    const name = await getUserName(bot, message)
+    bot.startConversation(message, function (err, convo) {
       if (err) return console.log(err)
-      convo.say('Hi, Your current status is: ' + status)
-      convo.say('You can change your status by messaging me with `start` or `stop`')
+      convo.say(`Hey ${name}!`)
+      convo.say(`I'm your new learning buddy 🐹 I will pair you every month with Mangrove people that wish to learn from your skills and people from whom you will learn new skills 💪`)
+      convo.say(`If you ever want to stop being paired, which would be very sad 😥, just tell me \`stop\``)
     })
   } catch (e) {
     console.log(e)
@@ -113,30 +115,59 @@ controller.hears('status', 'direct_message', async (bot, message) => {
   }
 })
 
-controller.hears('stop', 'direct_message', async (bot, message) => {
+controller.hears('^start$', ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
-    const apiUser = Promise.promisifyAll(bot.api.users)
-    const { user } = await apiUser.infoAsync({user: message.user})
-    await updateApplicant(user.name, {'Inactive': true})
-    bot.startPrivateConversation(message, (err, convo) => {
+    if (await checkIfFirstTime(bot, message) === false) return
+    bot.reply(message, 'Amaaaaaaaaaaaazing 🎉\'! I\'ll let you know when the next session starts! Happy Learning!')
+    const name = await getUserName(bot, message)
+    await updateApplicant(name, {'Inactive': false})
+  } catch (e) {
+    console.log(e)
+    bot.reply(message, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
+  }
+})
+
+controller.hears('^stop$', ['direct_message', 'direct_mention'], async (bot, message) => {
+  try {
+    if (await checkIfFirstTime(bot, message) === false) return
+    bot.startConversation(message, function (err, convo) {
       if (err) return console.log(err)
       convo.say('Okay 😥, sorry to see you go.')
       convo.say('You can start again by messaging me with `start`.')
     })
+    const name = await getUserName(bot, message)
+    await updateApplicant(name, {'Inactive': true})
   } catch (e) {
     console.log(e)
     bot.reply(message, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
   }
 })
 
-controller.hears('start', 'direct_message', async (bot, message) => {
+controller.hears('^show profile$', ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
-    const apiUser = Promise.promisifyAll(bot.api.users)
-    const { user } = await apiUser.infoAsync({user: message.user})
-    await updateApplicant(user.name, {'Inactive': false})
-    bot.startPrivateConversation(message, (err, convo) => {
-      if (err) return console.log(err)
-      convo.say('Amaaaaaaaaaaaazing 🎉\'! I\'ll let you know when the next session starts! Happy Learning!')
+    if (await checkIfFirstTime(bot, message) === false) return
+    const name = await getUserName(bot, message)
+    const rec = await getApplicant(name)
+    const isInactive = rec.get('Inactive') === true
+    bot.reply(message, {
+      'text': `:sparkles: This is your profile <@${name}> :sparkles:`,
+      'attachments': [
+        {
+          'title': isInactive ? ':sleeping: Inactive' : ':hand: Active',
+          'text': isInactive ? 'You\'re not gonna be paired with another P2PL applicants' : 'I can pair you with another P2PL applicants',
+          'color': isInactive ? '#E0E0E0' : '#81C784'
+        },
+        {
+          'title': ':sleuth_or_spy: Interests',
+          'text': rec.get('Interests').join(', '),
+          'color': '#64B5F6'
+        },
+        {
+          'title': ':muscle: Skills',
+          'text': rec.get('Skills').join(', '),
+          'color': '#E57373'
+        }
+      ]
     })
   } catch (e) {
     console.log(e)
@@ -144,18 +175,21 @@ controller.hears('start', 'direct_message', async (bot, message) => {
   }
 })
 
-controller.hears('applicants', ['direct_message', 'direct_mention'], async (bot, message) => {
+controller.hears('^show all applicants$', ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
+    if (await checkIfFirstTime(bot, message) === false) return
+    const botReply = Promise.promisify(bot.reply)
+    await botReply(message, 'This is the list of all P2PL applicants :sunglasses:')
     const people = await getAllApplicants()
     forEach(people, async function (person) {
       const done = this.async()
-      bot.reply(message, {
+      await botReply(message, {
         'text': `:sparkles: <@${person.name}> :sparkles:`,
         'attachments': [
           {
             'title': ':sleuth_or_spy: Interests',
             'text': person.interests.join(', '),
-            'color': '#9575CD'
+            'color': '#64B5F6'
           },
           {
             'title': ':muscle: Skills',
@@ -172,11 +206,46 @@ controller.hears('applicants', ['direct_message', 'direct_mention'], async (bot,
   }
 })
 
-controller.hears(['help', 'options'], ['direct_message', 'direct_mention'], async (bot, message) => {
-  bot.reply(message, `Hi, I'm the Learning Bot. You can message me one of the following things: \n
-    \`help\` - this information\n
-    \`status\` - find out if you're active to be paired in the next session\n
-    \`stop\` - stop being paired\n
-    \`start\` - start being paired\n
-    That's it. Happy Learning!`)
+controller.hears(['^help$', '^options$'], ['direct_message', 'direct_mention'], async (bot, message) => {
+  try {
+    if (await checkIfFirstTime(bot, message) === false) return
+    const name = await getUserName(bot, message)
+    const botReply = Promise.promisify(bot.reply)
+    await botReply(message, `Hi ${name}! What can I do for you ? :slightly_smiling_face:`)
+    await botReply(message, {
+      attachments: [{
+        pretext: 'This is what you can ask me:',
+        text: `\`start\` - start being paired\n\`stop\` - stop being paired\n\`show profile\` - your P2PL applicant profile\n\`show all applicants\` - list of all P2PL applicants`,
+        mrkdwn_in: ['text', 'pretext']
+      }]
+    })
+    const isAdmin = await checkIfAdmin(bot, message)
+    if (isAdmin) {
+      await botReply(message, {
+        attachments: [{
+          pretext: 'And because you\'re an Admin, you can also do:',
+          text: `\`pair all applicants\` - run the pairing algorithm and fill the <https://airtable.com/tbldvVUdJC0ScZdMe/viw7hEm5LC0qXVpqR|Pairings Table>\n\`introduce new pairings\` - send a message to all applicants about their new pairings\n\`send presentation message to no-applicants\` - I introduce myself to people who are not applicants yet`,
+          mrkdwn_in: ['text', 'pretext']
+        }]
+      })
+    }
+  } catch (e) {
+    console.log(e)
+    bot.reply(message, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
+  }
+})
+
+controller.hears('[^\n]+', ['direct_message', 'direct_mention'], async (bot, message) => {
+  try {
+    if (await checkIfFirstTime(bot, message) === false) return
+    const name = await getUserName(bot, message)
+    bot.startConversation(message, function (err, convo) {
+      if (err) return console.log(err)
+      convo.say(`Sorry ${name}, but I'm too young to understand what you mean :flushed:`)
+      convo.say(`If you need help, just tell me \`help\` :wink:`)
+    })
+  } catch (e) {
+    console.log(e)
+    bot.reply(message, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
+  }
 })

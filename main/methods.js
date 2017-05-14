@@ -6,6 +6,7 @@ import _ from 'lodash'
 import Promise from 'bluebird'
 
 import { base } from './airtable/index'
+import firstTimeConversation from './learningbot/firstTimeConversation'
 
 const {
   AIRTABLE_APPLICANTS,
@@ -13,7 +14,7 @@ const {
 } = process.env
 
 // reads all records from a table
-export const _getAllRecords = (select) => {
+const _getAllRecords = (select) => {
   return new Promise((resolve, reject) => {
     let allRecords = []
     select.eachPage(function page (records, fetchNextPage) {
@@ -26,6 +27,13 @@ export const _getAllRecords = (select) => {
   })
 }
 
+export const getUserName = async (bot, message) => {
+  const apiUser = Promise.promisifyAll(bot.api.users)
+  const { user } = await apiUser.infoAsync({user: message.user})
+  return user.name
+}
+
+// get applicant with slack handle
 export const getApplicant = async (slackHandle) => {
   const applicant = await _getAllRecords(base(AIRTABLE_APPLICANTS).select({
     maxRecords: 1,
@@ -34,6 +42,7 @@ export const getApplicant = async (slackHandle) => {
   return applicant[0]
 }
 
+// update applicant with slack handle
 export const updateApplicant = async (slackHandle, obj) => {
   const update = Promise.promisify(base(AIRTABLE_APPLICANTS).update)
   const { id } = await getApplicant(slackHandle)
@@ -72,12 +81,21 @@ export const getAllApplicants = async () => {
  */
 export const getAllNoApplicants = async (bot) => {
   const apiUser = Promise.promisifyAll(bot.api.users)
-  const {members} = await apiUser.listAsync({token: bot.config.token})
+  const {members} = await apiUser.listAsync({token: bot.config.bot.app_token})
   const applicants = await getAllApplicants()
   const listMember = _.map(members, ({id, name}) => ({id, name}))
   const listApplicants = _.map(applicants, ({name}) => name)
   _.remove(listMember, ({name}) => listApplicants.indexOf(name) === -1)
   return listMember
+}
+
+export const checkIfFirstTime = async (bot, message) => {
+  const name = await getUserName(bot, message)
+  const applicant = await getApplicant(name)
+  if (!!applicant === false) {
+    await firstTimeConversation(bot, message, {name})
+  }
+  return !!applicant
 }
 
 // reads all admins applicants from Airtable, and returns
@@ -109,11 +127,8 @@ export const checkIfAdmin = async (bot, message) => {
 export const getMembersPaired = async () => {
   const applicants = await getAllApplicants()
   const members = _.map(applicants, ({name}) => ({name, isLearner: false, isTeacher: false}))
-  const records = await _getAllRecords(base(AIRTABLE_PAIRING).select({
-    view: 'Main View',
-    filterByFormula: '{Bot Introduction}=0'
-  }))
-  records.forEach((record) => {
+  const pairings = await getPairingsNotIntroduced()
+  pairings.forEach((record) => {
     const learner = record.get('Learner')
     const teacher = record.get('Teacher')
     const skills = record.get('Skill')
@@ -131,12 +146,11 @@ export const getMembersPaired = async () => {
   return members
 }
 
-export const getPairingNotIntroduced = async () => {
+export const getPairingsNotIntroduced = async () => {
   const pairings = await _getAllRecords(base(AIRTABLE_PAIRING).select({
     view: 'Main View',
-    fields: ['Teacher', 'Learner', 'Skill', 'Paired On'],
     filterByFormula: '{Introduced}=0'
-  }))[0]
+  }))
   return pairings
 }
 
