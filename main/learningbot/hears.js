@@ -22,7 +22,6 @@ import startAPairingSession from './startAPairingSession'
 import firstTimeConversation from './firstTimeConversation'
 
 require('dotenv').config()
-require('newrelic')
 
 const { forEach } = asyncForEach
 const { NODE_ENV } = process.env
