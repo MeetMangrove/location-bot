@@ -85,7 +85,7 @@ export const getAllNoApplicants = async (bot) => {
   const applicants = await getAllApplicants()
   const listMember = _.map(members, ({id, name}) => ({id, name}))
   const listApplicants = _.map(applicants, ({name}) => name)
-  _.remove(listMember, ({name}) => listApplicants.indexOf(name) === -1)
+  _.remove(listMember, ({name}) => listApplicants.indexOf(name) >= 0)
   return listMember
 }
 

@@ -83,7 +83,6 @@ controller.hears('^send presentation message to no-applicants$', ['direct_messag
         if (NODE_ENV === 'PRODUCTION') {
           firstTimeConversation(bot, {user: id}, {name})
         } else {
-          firstTimeConversation(bot, {user: id}, {name})
           console.log('Send to', name)
         }
         done()
