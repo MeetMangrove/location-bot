@@ -3,28 +3,34 @@
  */
 
 import Botkit from 'botkit'
+import BotkitStorageMongo from 'botkit-storage-mongo'
 
 const _bots = {}
 const {
   SLACK_CLIENT_ID,
   SLACK_CLIENT_SECRET,
-  PORT
+  PORT,
+  MONGO_URL
 } = process.env
 
-if (!SLACK_CLIENT_ID || !SLACK_CLIENT_SECRET || !PORT) {
-  console.log('Error: Specify SLACK_CLIENT_ID, SLACK_CLIENT_SECRET and PORT in a .env file')
+if (!SLACK_CLIENT_ID || !SLACK_CLIENT_SECRET || !PORT || !MONGO_URL) {
+  console.log('Error: Specify SLACK_CLIENT_ID, SLACK_CLIENT_SECRET, PORT and MONGO_URL in a .env file')
   process.exit(1)
 }
 
-function trackBot (bot) {
+const trackBot = (bot) => {
   _bots[bot.config.token] = bot
 }
+
+const mongoStorage = new BotkitStorageMongo({
+  mongoUri: MONGO_URL
+})
 
 const controller = Botkit.slackbot({
   debug: false,
   interactive_replies: true,
   require_delivery: true,
-  json_file_store: './db_learningbot/'
+  storage: mongoStorage
 })
 
 controller.configureSlackApp({
@@ -50,7 +56,7 @@ controller.on('create_bot', (bot, config) => {
   } else {
     bot.startRTM((err) => {
       if (!err) trackBot(bot)
-      bot.startPrivateConversation({ user: config.createdBy }, (err, convo) => {
+      bot.startPrivateConversation({user: config.createdBy}, (err, convo) => {
         if (err) return console.log(err)
         convo.say('I am a bot that has just joined your team')
         convo.say('You must now /invite me to a channel so that I can be of use!')
