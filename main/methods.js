@@ -10,7 +10,8 @@ import firstTimeConversation from './learningbot/firstTimeConversation'
 
 const {
   AIRTABLE_APPLICANTS,
-  AIRTABLE_PAIRING
+  AIRTABLE_PAIRING,
+  AIRTABLE_MEMBERS
 } = process.env
 
 // reads all records from a table
@@ -27,10 +28,18 @@ const _getAllRecords = (select) => {
   })
 }
 
-export const getUserName = async (bot, message) => {
+// get slack user info by id
+export const getSlackUser = async (bot, id) => {
   const apiUser = Promise.promisifyAll(bot.api.users)
-  const { user } = await apiUser.infoAsync({user: message.user})
-  return user.name
+  const {user} = await apiUser.infoAsync({user: id})
+  return user
+}
+
+// get member by id
+export const getMember = async (id) => {
+  const findMember = Promise.promisify(base(AIRTABLE_MEMBERS).find)
+  const member = await findMember(id)
+  return member
 }
 
 // get applicant with slack handle
@@ -45,7 +54,7 @@ export const getApplicant = async (slackHandle) => {
 // update applicant with slack handle
 export const updateApplicant = async (slackHandle, obj) => {
   const update = Promise.promisify(base(AIRTABLE_APPLICANTS).update)
-  const { id } = await getApplicant(slackHandle)
+  const {id} = await getApplicant(slackHandle)
   const applicant = update(id, obj)
   return applicant
 }
@@ -58,7 +67,7 @@ export const updateApplicant = async (slackHandle, obj) => {
 export const getAllApplicants = async () => {
   const records = await _getAllRecords(base(AIRTABLE_APPLICANTS).select({
     view: 'Main View',
-    fields: ['Slack Handle', 'Interests', 'Skills', 'Admin'],
+    fields: ['Slack Handle', 'Interests', 'Skills', 'Admin', 'Applicant'],
     filterByFormula: '{Inactive}=0'
   }))
   return _.reduce(records, (people, r) => {
@@ -68,7 +77,8 @@ export const getAllApplicants = async () => {
         name: name.replace(/^@/, ''),
         interests: (r.get('Interests') || []),
         skills: (r.get('Skills') || []),
-        isAdmin: !!r.get('Admin')
+        isAdmin: !!r.get('Admin'),
+        applicant: (r.get('Applicant') || [])[0]
       })
     }
     return people
@@ -90,7 +100,7 @@ export const getAllNoApplicants = async (bot) => {
 }
 
 export const checkIfFirstTime = async (bot, message) => {
-  const name = await getUserName(bot, message)
+  const {name} = await getSlackUser(bot, message.user)
   const applicant = await getApplicant(name)
   if (!!applicant === false) {
     await firstTimeConversation(bot, message, {name})

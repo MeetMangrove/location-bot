@@ -46,7 +46,7 @@ Running in production mode after building:
 $ npm run serve
 ```
 
-Heroku worker:
+Heroku dynos:
 ```bash
 $ npm run web
 ```

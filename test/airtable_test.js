@@ -32,7 +32,7 @@ describe('airtable', function () {
       expect(people).not.to.be.empty
       people.forEach(function (person) {
         expect(person).to.be.an('object')
-        expect(_.keys(person)).to.have.members(['name', 'interests', 'skills', 'isAdmin'])
+        expect(_.keys(person)).to.have.members(['name', 'interests', 'skills', 'isAdmin', 'applicant'])
         expect(person.name).to.be.a('string')
         expect(person.name).not.to.be.empty
         expect(person.interests).to.be.a('array')
