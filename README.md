@@ -3,7 +3,7 @@
 Automatically pair people based on the skills they can teach and those
 they want to learn.
 
-## Usage
+## Usages
 
 ### Generate a pairing
 
@@ -15,8 +15,8 @@ Will fetch the data from Airtable for all people's interests and skills, generat
 
 You can set the tables used in Airtable via environment variables:
 ```
-APPLICANTS_TABLE="P2PL Applicants"
-PAIRINGS_TABLE="Pairings"
+AIRTABLE_APPLICANTS="P2PL Applicants"
+AIRTABLE_PAIRING="Pairings"
 ```
 
 ### Run the bot

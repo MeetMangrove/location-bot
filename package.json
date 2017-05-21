@@ -49,13 +49,13 @@
   "main": "main/index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tjeanneau/mangrove-pairing.git"
+    "url": "git+https://github.com/MeetMangrove/mangrove-pairing.git"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/tjeanneau/mangrove-pairing/issues"
+    "url": "https://github.com/MeetMangrove/mangrove-pairing/issues"
   },
-  "homepage": "https://github.com/tjeanneau/mangrove-pairing#readme"
+  "homepage": "https://github.com/MeetMangrove/mangrove-pairing#readme"
 }
