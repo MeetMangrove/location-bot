@@ -4,4 +4,4 @@
 
 import 'newrelic'
 import 'babel-polyfill'
-import './learningbot/hears'
+import './bot/hears'

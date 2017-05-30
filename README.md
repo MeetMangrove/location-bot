@@ -1,22 +1,25 @@
-# Mangrove Pairing
+# Mangrove Bot Boilerplate
 
-Automatically pair people based on the skills they can teach and those
-they want to learn.
+A boilerplate for Mangrove Bots in Node.js.
 
 ## Usages
 
-### Generate a pairing
+### Set environmental variables
 
-```bash
-$ npm run pair
+Create a .env file with the following variables and their values:
 ```
-
-Will fetch the data from Airtable for all people's interests and skills, generate pairings for them and save it to Airtable.
-
-You can set the tables used in Airtable via environment variables:
-```
-AIRTABLE_APPLICANTS="P2PL Applicants"
-AIRTABLE_PAIRING="Pairings"
+SLACK_CLIENT_ID=***************
+SLACK_CLIENT_SECRET=***************
+AIRTABLE_API_KEY=***************
+AIRTABLE_BASE_KEY=***************
+AIRTABLE_MEMBERS=***************
+NEW_RELIC_LICENSE_KEY=***************
+NEW_RELIC_APP_NAME=***************
+NEW_RELIC_APDEX=***************
+NEW_RELIC_NO_CONFIG_FILE=***************
+MONGO_URL=***************
+NODE_ENV=DEVELOPMENT
+PORT=3000
 ```
 
 ### Run the bot
