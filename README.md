@@ -4,10 +4,17 @@ A boilerplate for Mangrove Bots in Node.js.
 
 ## Usages
 
+### Installation
+
+Clone the repo, then run:
+```bash
+$ npm install
+```
+
 ### Set environmental variables
 
 Create a .env file with the following variables and their values:
-```
+```bash
 SLACK_CLIENT_ID=***************
 SLACK_CLIENT_SECRET=***************
 AIRTABLE_API_KEY=***************
