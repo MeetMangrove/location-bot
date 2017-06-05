@@ -25,6 +25,7 @@
     "botkit-storage-mongo": "1.0.6",
     "dotenv": "4.0.0",
     "lodash": "^4.17.4",
+    "mongodb": "2.2.28",
     "newrelic": "1.39.1"
   },
   "devDependencies": {
