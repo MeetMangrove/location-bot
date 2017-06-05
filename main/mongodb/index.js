@@ -2,12 +2,15 @@
  * Created by thomasjeanneau on 05/06/2017.
  */
 
+// TODO: need to test all functions
+
 import Promise from 'bluebird'
-import MongoClient from 'mongodb'
+import mongodb from 'mongodb'
 
 require('dotenv').config()
 
 const {MONGO_URL} = process.env
+const {MongoClient} = mongodb
 
 export const find = async (name, selector) => {
   const connect = Promise.promisify(MongoClient.connect)
