@@ -44,14 +44,13 @@ export const getMember = async (id) => {
 }
 
 // get member by Slack name
-export const getMemberBySlackHandler = (handle, callback) => {
-  base(AIRTABLE_MEMBERS).select({
+export const getMemberBySlackHandler = async (handle) => {
+  const records = await _getAllRecords(base(AIRTABLE_MEMBERS).select({
     maxRecords: 1,
-    view: "Main View",
+    view: 'Main View',
     filterByFormula: `{Slack Handle} = "@${handle}"`
-  }).firstPage(function(err, records) {
-    callback(err, records[0])
-  })
+  }))
+  return records[0].fields
 }
 
 // reads all members from Airtable, and returns
