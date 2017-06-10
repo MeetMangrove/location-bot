@@ -50,22 +50,27 @@ export const getMemberBySlackHandler = async (handle) => {
     view: 'Main View',
     filterByFormula: `{Slack Handle} = "@${handle}"`
   }))
-  return records[0].fields
+  return records[0]
+}
+
+// update member
+export const updateMember = async (id, fields) => {
+  const updateMember = Promise.promisify(base(AIRTABLE_MEMBERS).update)
+  const member = await updateMember(id, fields)
+  return member
 }
 
 // reads all members from Airtable, and returns
 // a boolean checking if the current user is an builder or not.
 export const checkIfBuilder = async (bot, message) => {
-  const admins = []
-  const apiUser = Promise.promisifyAll(bot.api.users)
+  const slackUser = await getSlackUser(bot, message.user)
   const records = await _getAllRecords(base(AIRTABLE_MEMBERS).select({
+    maxRecords: 1,
     view: 'Main View',
-    filterByFormula: 'FIND(\'Cofounder\', {Status})'
+    filterByFormula: `AND(
+      {Slack Handle} = "@${slackUser.name}",
+      {Status} = "Cofounder"
+    )`
   }))
-  records.forEach((record) => {
-    const name = record.get('Slack Handle')
-    admins.push(name.replace(/^@/, ''))
-  })
-  const {user: {name}} = await apiUser.infoAsync({user: message.user})
-  return admins.indexOf(name) >= 0
+  return !!records[0]
 }

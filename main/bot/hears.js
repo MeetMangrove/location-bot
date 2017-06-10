@@ -4,7 +4,12 @@
 
 import Promise from 'bluebird'
 
-import { getSlackUser, getMemberBySlackHandler, checkIfBuilder } from '../methods'
+import {
+  getSlackUser,
+  getMemberBySlackHandler,
+  checkIfBuilder,
+  updateMember
+} from '../methods'
 import { controller } from './config'
 
 require('dotenv').config()
@@ -23,6 +28,11 @@ const giveHelp = function() {
   "!map" for a link to Mangrove Members map!`
 };
 
+const handleError = function(e, bot) {
+  console.log(e)
+  bot.reply(message, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
+}
+
 // User Commands
 
 controller.hears(['^Hello$', '^Yo$', '^Hey$', '^Hi$', '^Ouch$'], ['direct_message', 'direct_mention'], async (bot, message) => {
@@ -36,27 +46,46 @@ controller.hears(['^Hello$', '^Yo$', '^Hey$', '^Hi$', '^Ouch$'], ['direct_messag
       convo.say(giveHelp())
     })
   } catch (e) {
-    console.log(e)
-    bot.reply(message, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
+    handleError(e, bot)
   }
 })
 
 controller.hears(['!myloc'], ['direct_message', 'direct_mention'], async (bot, message) => {
-    try {
-      const slackUser = await getSlackUser(bot, message.user)
-      const user = await getMemberBySlackHandler(slackUser.name)
-      const botReply = Promise.promisify(bot.reply)
-      await botReply(message, {
-        attachments: [{
-          pretext: 'Your location seems to be:',
-          text: user['Postal Adress'],
-          mrkdwn_in: ['text', 'pretext']
-        }]
-      })
-    } catch (e) {
-      console.log(e)
-      bot.reply(message, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
-    }
+  try {
+    const slackUser = await getSlackUser(bot, message.user)
+    const user = await getMemberBySlackHandler(slackUser.name)
+    const botReply = Promise.promisify(bot.reply)
+    await botReply(message, {
+      attachments: [{
+        pretext: 'Your location seems to be:',
+        text: user.fields['Postal Adress'],
+        mrkdwn_in: ['text', 'pretext']
+      }]
+    })
+  } catch (e) {
+    handleError(e, bot)
+  }
+})
+
+controller.hears(['!newloc'], ['direct_message', 'direct_mention'], async (bot, message) => {
+  try {
+    const slackUser = await getSlackUser(bot, message.user)
+    const user = await getMemberBySlackHandler(slackUser.name)
+    const newLoc = message.text.replace('!newloc ', '')
+    const updatedMember = await updateMember(user.id, {
+      'Postal Adress': newLoc
+    })
+    const botReply = Promise.promisify(bot.reply)
+    await botReply(message, {
+      attachments: [{
+        pretext: 'Ok, I updated your location to:',
+        text: updatedMember.fields['Postal Adress'],
+        mrkdwn_in: ['text', 'pretext']
+      }]
+    })
+  } catch (e) {
+    handleError(e, bot)
+  }
 })
 
 controller.hears(['^help$', '^options$'], ['direct_message', 'direct_mention'], async (bot, message) => {
@@ -82,8 +111,7 @@ controller.hears(['^help$', '^options$'], ['direct_message', 'direct_mention'], 
     //   })
     // }
   } catch (e) {
-    console.log(e)
-    bot.reply(message, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
+    handleError(e, bot)
   }
 })
 
@@ -96,7 +124,6 @@ controller.hears('[^\n]+', ['direct_message', 'direct_mention'], async (bot, mes
       convo.say(`If you need help, just tell me \`help\` :wink:`)
     })
   } catch (e) {
-    console.log(e)
-    bot.reply(message, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
+    handleError(e, bot)
   }
 })
