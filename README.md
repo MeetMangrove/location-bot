@@ -1,6 +1,6 @@
-# Mangrove Bot Boilerplate
+# Mangrove Location Bot
 
-A boilerplate for Mangrove Bots in Node.js.
+A bot that talks to Mangrove members on Slack to update their current location.
 
 ## Usages
 
