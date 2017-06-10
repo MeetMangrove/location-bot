@@ -4,7 +4,7 @@
 
 import Promise from 'bluebird'
 
-import { getSlackUser, checkIfBuilder } from '../methods'
+import { getSlackUser, getMemberBySlackHandler, checkIfBuilder } from '../methods'
 import { controller } from './config'
 
 require('dotenv').config()
@@ -16,6 +16,13 @@ if (!NODE_ENV) {
   process.exit(1)
 }
 
+// Helper Methods
+const giveHelp = function() {
+  return `"!newloc <city or country>" for me to update your location,
+  "!myloc" if you want to know where I think you are,
+  "!map" for a link to Mangrove Members map!`
+};
+
 // User Commands
 
 controller.hears(['^Hello$', '^Yo$', '^Hey$', '^Hi$', '^Ouch$'], ['direct_message', 'direct_mention'], async (bot, message) => {
@@ -24,12 +31,29 @@ controller.hears(['^Hello$', '^Yo$', '^Hey$', '^Hi$', '^Ouch$'], ['direct_messag
     bot.startConversation(message, function (err, convo) {
       if (err) return console.log(err)
       convo.say(`Hey ${name}!`)
-      convo.say(`I'm a new Mangrove Bot :smile:`)
+      convo.say(`I'm Marco Polo! I'm taking care of keeping everyone's location up to date :boat:`)
+      convo.say(`Here are the few commands you can use with me :ok_woman:`)
+      convo.say(giveHelp())
     })
   } catch (e) {
     console.log(e)
     bot.reply(message, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
   }
+})
+
+controller.hears(['!myloc'], ['direct_message', 'direct_mention'], async (bot, message) => {
+    try {
+      const slackUser = await getSlackUser(bot, message.user)
+      getMemberBySlackHandler(slackUser.name, (user) => {
+        bot.startConversation(message, function(err, convo) {
+          if (err) return console.log(err)
+          convo.say(`Your location seems to be\n${user['Postal Adress']}`)
+        })
+      })
+    } catch (e) {
+      console.log(e)
+      bot.reply(message, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
+    }
 })
 
 controller.hears(['^help$', '^options$'], ['direct_message', 'direct_mention'], async (bot, message) => {
@@ -40,20 +64,20 @@ controller.hears(['^help$', '^options$'], ['direct_message', 'direct_mention'], 
     await botReply(message, {
       attachments: [{
         pretext: 'This is what you can ask me:',
-        text: ``,
+        text: giveHelp(),
         mrkdwn_in: ['text', 'pretext']
       }]
     })
-    const isBuilder = await checkIfBuilder(bot, message)
-    if (isBuilder) {
-      await botReply(message, {
-        attachments: [{
-          pretext: 'And because you\'re a Builder, you can also do:',
-          text: ``,
-          mrkdwn_in: ['text', 'pretext']
-        }]
-      })
-    }
+    // const isBuilder = await checkIfBuilder(bot, message)
+    // if (isBuilder) {
+    //   await botReply(message, {
+    //     attachments: [{
+    //       pretext: 'And because you\'re a Builder, you can also do:',
+    //       text: ``,
+    //       mrkdwn_in: ['text', 'pretext']
+    //     }]
+    //   })
+    // }
   } catch (e) {
     console.log(e)
     bot.reply(message, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)

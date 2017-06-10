@@ -18,4 +18,4 @@ Airtable.configure({
 })
 
 // allows accessing tables directly
-export const base = Airtable.base(AIRTABLE_BASE_KEY)
+export default Airtable.base(AIRTABLE_BASE_KEY)

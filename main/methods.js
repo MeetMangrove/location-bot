@@ -4,7 +4,7 @@
 
 import Promise from 'bluebird'
 
-import { base } from './airtable/index'
+import base from './airtable/index'
 
 const {
   AIRTABLE_MEMBERS
@@ -41,6 +41,19 @@ export const getMember = async (id) => {
   const findMember = Promise.promisify(base(AIRTABLE_MEMBERS).find)
   const member = await findMember(id)
   return member
+}
+
+// get member by Slack name
+export const getMemberBySlackHandler = (handle, callback) => {
+  base(AIRTABLE_MEMBERS).select({
+    maxRecords: 1,
+    view: "Main View",
+    filterByFormula: `{Slack Handle} = "@${handle}"`
+  }).firstPage(function(err, records) {
+    if (err) { console.error(err); return; }
+    console.log("in callback")
+    callback(records.length > 0 && records[0].fields || null)
+  })
 }
 
 // reads all members from Airtable, and returns

@@ -9,11 +9,11 @@ const _bots = {}
 const {
   SLACK_CLIENT_ID,
   SLACK_CLIENT_SECRET,
-  PORT,
-  MONGO_URL
+  SLACK_BOT_TOKEN,
+  PORT
 } = process.env
 
-if (!SLACK_CLIENT_ID || !SLACK_CLIENT_SECRET || !PORT || !MONGO_URL) {
+if (!SLACK_CLIENT_ID || !SLACK_CLIENT_SECRET || !PORT) {
   console.log('Error: Specify SLACK_CLIENT_ID, SLACK_CLIENT_SECRET, PORT and MONGO_URL in a .env file')
   process.exit(1)
 }
@@ -22,15 +22,10 @@ const trackBot = (bot) => {
   _bots[bot.config.token] = bot
 }
 
-const mongoStorage = new BotkitStorageMongo({
-  mongoUri: MONGO_URL
-})
-
 const controller = Botkit.slackbot({
   debug: false,
   interactive_replies: true,
-  require_delivery: true,
-  storage: mongoStorage
+  require_delivery: true
 })
 
 controller.configureSlackApp({
@@ -73,16 +68,20 @@ controller.on('rtm_close', () => {
   console.log('** The RTM api just closed')
 })
 
-controller.storage.teams.all((err, teams) => {
-  if (err) throw new Error(err)
-  for (let t in teams) {
-    if (teams[t].bot) {
-      controller.spawn(teams[t]).startRTM((err, bot) => {
-        if (err) return console.log('Error connecting bot to Slack:', err)
-        trackBot(bot)
-      })
-    }
-  }
+// controller.storage.teams.all((err, teams) => {
+//   if (err) throw new Error(err)
+//   for (let t in teams) {
+//     if (teams[t].bot) {
+//       controller.spawn(teams[t]).startRTM((err, bot) => {
+//         if (err) return console.log('Error connecting bot to Slack:', err)
+//         trackBot(bot)
+//       })
+//     }
+//   }
+// })
+controller.spawn({token: SLACK_BOT_TOKEN}).startRTM((err, bot) => {
+  if (err) return console.log('Error connecting bot to Slack:', err)
+  trackBot(bot)
 })
 
 export { controller }
