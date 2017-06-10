@@ -44,10 +44,14 @@ controller.hears(['^Hello$', '^Yo$', '^Hey$', '^Hi$', '^Ouch$'], ['direct_messag
 controller.hears(['!myloc'], ['direct_message', 'direct_mention'], async (bot, message) => {
     try {
       const slackUser = await getSlackUser(bot, message.user)
-      getMemberBySlackHandler(slackUser.name, (user) => {
-        bot.startConversation(message, function(err, convo) {
-          if (err) return console.log(err)
-          convo.say(`Your location seems to be\n${user['Postal Adress']}`)
+      getMemberBySlackHandler(slackUser.name, (err, user) => {
+        if (err) throw err
+        bot.reply(message, {
+          attachments: [{
+            pretext: 'Your location seems to be:',
+            text: user.fields['Postal Adress'],
+            mrkdwn_in: ['text', 'pretext']
+          }]
         })
       })
     } catch (e) {

@@ -50,9 +50,7 @@ export const getMemberBySlackHandler = (handle, callback) => {
     view: "Main View",
     filterByFormula: `{Slack Handle} = "@${handle}"`
   }).firstPage(function(err, records) {
-    if (err) { console.error(err); return; }
-    console.log("in callback")
-    callback(records.length > 0 && records[0].fields || null)
+    callback(err, records[0])
   })
 }
 
