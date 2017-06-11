@@ -11,6 +11,7 @@ import {
   updateMember
 } from '../methods'
 import { controller } from './config'
+import { validateAddress } from '../gmaps'
 
 require('dotenv').config()
 
@@ -35,7 +36,7 @@ const handleError = function(e, bot) {
 
 // User Commands
 
-controller.hears(['^Hello$', '^Yo$', '^Hey$', '^Hi$', '^Ouch$'], ['direct_message', 'direct_mention'], async (bot, message) => {
+controller.hears(['^Hello', '^Yo', '^Hey', '^Hi', '^Ouch'], ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
     const {name} = await getSlackUser(bot, message.user)
     bot.startConversation(message, function (err, convo) {
@@ -50,7 +51,7 @@ controller.hears(['^Hello$', '^Yo$', '^Hey$', '^Hi$', '^Ouch$'], ['direct_messag
   }
 })
 
-controller.hears(['!myloc'], ['direct_message', 'direct_mention'], async (bot, message) => {
+controller.hears(['^!myloc'], ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
     const slackUser = await getSlackUser(bot, message.user)
     const user = await getMemberBySlackHandler(slackUser.name)
@@ -67,13 +68,17 @@ controller.hears(['!myloc'], ['direct_message', 'direct_mention'], async (bot, m
   }
 })
 
-controller.hears(['!newloc'], ['direct_message', 'direct_mention'], async (bot, message) => {
+controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
     const slackUser = await getSlackUser(bot, message.user)
     const user = await getMemberBySlackHandler(slackUser.name)
-    const newLoc = message.text.replace('!newloc ', '')
+
+    // TODO: check if multiple addresses have been returned, asked the user to choose the correct one.
+    const validatedLocs = await validateAddress(message.text.replace('!newloc ', ''))
+
+    // TODO: ask user to confirm they want to change their location to validated address
     const updatedMember = await updateMember(user.id, {
-      'Postal Adress': newLoc
+      'Postal Adress': validatedLocs[0].formatted_address
     })
     const botReply = Promise.promisify(bot.reply)
     await botReply(message, {
@@ -88,7 +93,7 @@ controller.hears(['!newloc'], ['direct_message', 'direct_mention'], async (bot, 
   }
 })
 
-controller.hears(['^help$', '^options$'], ['direct_message', 'direct_mention'], async (bot, message) => {
+controller.hears(['^help', '^options$'], ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
     const {name} = await getSlackUser(bot, message.user)
     const botReply = Promise.promisify(bot.reply)

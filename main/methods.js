@@ -55,8 +55,10 @@ export const getMemberBySlackHandler = async (handle) => {
 
 // update member
 export const updateMember = async (id, fields) => {
+  console.log("updating member ", id, fields)
   const updateMember = Promise.promisify(base(AIRTABLE_MEMBERS).update)
   const member = await updateMember(id, fields)
+  console.log("updated! ", member)
   return member
 }
 
