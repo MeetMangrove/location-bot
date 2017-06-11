@@ -10,10 +10,11 @@ const {
   SLACK_CLIENT_ID,
   SLACK_CLIENT_SECRET,
   SLACK_BOT_TOKEN,
-  PORT
+  PORT,
+  MONGO_URL
 } = process.env
 
-if (!SLACK_CLIENT_ID || !SLACK_CLIENT_SECRET || !PORT) {
+if (!SLACK_CLIENT_ID || !SLACK_CLIENT_SECRET || !PORT || !MONGO_URL) {
   console.log('Error: Specify SLACK_CLIENT_ID, SLACK_CLIENT_SECRET, PORT and MONGO_URL in a .env file')
   process.exit(1)
 }
@@ -22,10 +23,15 @@ const trackBot = (bot) => {
   _bots[bot.config.token] = bot
 }
 
+const mongoStorage = new BotkitStorageMongo({
+  mongoUri: MONGO_URL
+})
+
 const controller = Botkit.slackbot({
   debug: false,
   interactive_replies: true,
-  require_delivery: true
+  require_delivery: true,
+  storage: mongoStorage
 })
 
 controller.configureSlackApp({
