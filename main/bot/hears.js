@@ -75,7 +75,7 @@ controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot,
     const slackUser = await getSlackUser(bot, message.user)
     const user = await getMemberBySlackHandler(slackUser.name)
 
-    const address = message.text.replace('!newloc ', '')
+    const address = message.text.replace('!newloc ', '').replace('!newloc', '')
     if (address.length === 0) {
       await botReply(message, {
         attachments: [{
@@ -87,7 +87,7 @@ controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot,
     }
 
     // TODO: check if multiple addresses have been returned, asked the user to choose the correct one.
-    const validatedLocs = await validateAddress()
+    const validatedLocs = await validateAddress(address)
 
     // TODO: ask user to confirm they want to change their location to validated address
     const updatedMember = await updateMember(user.id, {
