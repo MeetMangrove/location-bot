@@ -70,17 +70,30 @@ controller.hears(['^!myloc'], ['direct_message', 'direct_mention'], async (bot, 
 
 controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
+    const botReply = Promise.promisify(bot.reply)
+
     const slackUser = await getSlackUser(bot, message.user)
     const user = await getMemberBySlackHandler(slackUser.name)
 
+    const address = message.text.replace('!newloc ', '')
+    if (address.length === 0) {
+      await botReply(message, {
+        attachments: [{
+          pretext: `It seems like you didn't give me any address...`,
+          text: `!myloc 123 5th av., New York NY`
+        }]
+      })
+      return
+    }
+
     // TODO: check if multiple addresses have been returned, asked the user to choose the correct one.
-    const validatedLocs = await validateAddress(message.text.replace('!newloc ', ''))
+    const validatedLocs = await validateAddress()
 
     // TODO: ask user to confirm they want to change their location to validated address
     const updatedMember = await updateMember(user.id, {
       'Postal Adress': validatedLocs[0].formatted_address
     })
-    const botReply = Promise.promisify(bot.reply)
+
     await botReply(message, {
       attachments: [{
         pretext: 'Ok, I updated your location to:',
