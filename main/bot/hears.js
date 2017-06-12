@@ -75,7 +75,7 @@ controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot,
     const slackUser = await getSlackUser(bot, message.user)
     const user = await getMemberBySlackHandler(slackUser.name)
 
-    const address = message.text.replace('!newloc ', '').replace('!newloc', '')
+    const address = message.text.replace('!newloc', '')
     if (address.length === 0) {
       await botReply(message, {
         attachments: [{
