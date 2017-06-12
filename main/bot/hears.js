@@ -80,7 +80,7 @@ controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot,
       await botReply(message, {
         attachments: [{
           pretext: `It seems like you didn't give me any address...`,
-          text: `!myloc 123 5th av., New York NY`
+          text: `!newloc 123 5th av., New York NY`
         }]
       })
       return
