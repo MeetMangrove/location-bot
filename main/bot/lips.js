@@ -6,17 +6,21 @@ import { handleError } from './hears'
  * slackId can be a channel or a user
  * message is a string or a slack message object
  */
-const sendPrivateMessage = function(slackId, message) {
+export const sendPrivateMessage = function(slackId, message) {
   bot.startPrivateConversation({user: slackId}, (err, convo) => {
     if (err) return console.error(err)
     convo.say(message)
   })
 }
 
-const spamEveryone = function(message) {
+/* spamEveryone will privately send a message to every slack user.
+ *
+ * message is a string
+ */
+export const spamEveryone = function(message) {
   bot.api.users.list({}, (err, response) => {
     if (err) return console.error(err)
-    for (const member in response.members) {
+    for (const member of response.members) {
       sendPrivateMessage(member.id, message)
     }
   })
