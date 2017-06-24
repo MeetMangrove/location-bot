@@ -28,7 +28,6 @@ const mongoStorage = new BotkitStorageMongo({
 })
 
 const controller = Botkit.slackbot({
-  debug: true,
   interactive_replies: true,
   require_delivery: true,
   storage: mongoStorage
