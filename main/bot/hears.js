@@ -79,7 +79,7 @@ controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot,
     if (address.length === 0) {
       await botReply(message, {
         attachments: [{
-          pretext: `It seems like you didn't give me any address...`,
+          pretext: `It seems like you didn't give me any address... Please send me something like the following example:`,
           text: `!newloc 123 5th av., New York NY`
         }]
       })
@@ -89,18 +89,43 @@ controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot,
     // TODO: check if multiple addresses have been returned, asked the user to choose the correct one.
     const validatedLocs = await validateAddress(address)
 
-    // TODO: ask user to confirm they want to change their location to validated address
-    const updatedMember = await updateMember(user.id, {
-      'Postal Adress': validatedLocs[0].formatted_address
-    })
-
     await botReply(message, {
       attachments: [{
-        pretext: 'Ok, I updated your location to:',
-        text: updatedMember.fields['Postal Adress'],
-        mrkdwn_in: ['text', 'pretext']
+        callback_id: '1',
+        attachment_type: 'default',
+        pretext: `I found a matching address, is it correct?`,
+        title: validatedLocs[0].formatted_address,
+        actions: [
+          {
+            "name": "addressConfirmed",
+            "text": "Yes",
+            "type": "button",
+            "value": true,
+            "style": "primary"
+          },
+          {
+            "name": "addressConfirmed",
+            "text": "No",
+            "type": "button",
+            "value": false,
+            "style": "danger"
+          }
+        ]
       }]
     })
+
+    // TODO: ask user to confirm they want to change their location to validated address
+    // const updatedMember = await updateMember(user.id, {
+    //   'Postal Adress': validatedLocs[0].formatted_address
+    // })
+
+    // await botReply(message, {
+    //   attachments: [{
+    //     pretext: 'Ok, I updated your location to:',
+    //     text: updatedMember.fields['Postal Adress'],
+    //     mrkdwn_in: ['text', 'pretext']
+    //   }]
+    // })
   } catch (e) {
     handleError(e, bot)
   }
@@ -145,3 +170,30 @@ controller.hears('[^\n]+', ['direct_message', 'direct_mention'], async (bot, mes
     handleError(e, bot)
   }
 })
+
+// receive an interactive message, and reply with a message that will replace the original
+controller.on('interactive_message_callback', function(bot, message) {
+  console.log(message)
+  switch (message.callback_id) {
+    case '1':
+      handleAddressConfirmation(bot, message)
+      break
+  }
+})
+
+const handleAddressConfirmation = async function(bot, message) {
+  console.log("in callback 1")
+  bot.replyInteractive(message, {
+    attachments: [{
+      callback_id: '1',
+      attachment_type: 'default',
+      pretext: `I found a matching address, is it correct?`,
+      title: validatedLocs[0].formatted_address,
+      actions: [
+        {
+          "text": ":white_check_mark:"
+        }
+      ]
+    }]
+});
+}
