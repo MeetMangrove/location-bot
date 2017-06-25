@@ -147,19 +147,6 @@ controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot,
         }]
       })
     }
-
-    // TODO: ask user to confirm they want to change their location to validated address
-    // const updatedMember = await updateMember(user.id, {
-    //   'Postal Adress': validatedLocs[0].formatted_address
-    // })
-
-    // await botReply(message, {
-    //   attachments: [{
-    //     pretext: 'Ok, I updated your location to:',
-    //     text: updatedMember.fields['Postal Adress'],
-    //     mrkdwn_in: ['text', 'pretext']
-    //   }]
-    // })
   } catch (e) {
     handleError(e, bot)
   }
@@ -204,11 +191,11 @@ const handleAddressConfirmation = async function(bot, message) {
     })
 
     actions.push({
-      text: `:white_check_mark:`
+      text: `:white_check_mark: Address updated!`
     })
   } else {
     actions.push({
-      text: `:x:`
+      text: `:x: Ping me whenever you want to update your address!`
     })
   }
 
