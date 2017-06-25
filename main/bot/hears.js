@@ -135,7 +135,6 @@ controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot,
         for (let comp of loc.address_components) {
           if (comp.types.indexOf('postal_code') > -1) {
             postalCode = comp.postal_code
-            break
           }
         }
         actions.push({
