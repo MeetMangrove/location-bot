@@ -193,34 +193,34 @@ controller.on('interactive_message_callback', function(bot, message) {
   }
 })
 
-const handleAddressConfirmation = function(bot, message) {
-  let text;
+const handleAddressConfirmation = async function(bot, message) {
+  let actions = [];
   if (message.actions[0].value) {
-    updateMember(message.user.id, {
+    const slackUser = await getSlackUser(bot, message.user)
+    const user = await getMemberBySlackHandler(slackUser.name)
+
+    updateMember(user.id, {
     'Postal Adress': message.actions[0].value
     })
-    text = `:white_check_mark: ${message.actions[0].value}`
+
+    actions.push({
+      text: `:white_check_mark:`
+    })
   } else {
-    text = ':x:'
+    actions.push({
+      text: `:x:`
+    })
   }
 
-  bot.replyInteractive(message, {
-    attachments: [{
-      callback_id: '1',
-      attachment_type: 'default',
-      pretext: `I found a matching address, is it correct?`,
-      title: validatedLocs[0].formatted_address,
-      actions: [
-        {
-          'text': text
-        }
-      ]
-    }]
-  })
+  const attachments = message.original_message.attachments
+  attachments[0].actions = actions
+  bot.replyInteractive(message, {attachments: attachments})
 }
 
 const handleAddressSelect = function(bot, message) {
-  updateMember(message.user.id, {
+  const slackUser = await getSlackUser(bot, message.user)
+  const user = await getMemberBySlackHandler(slackUser.name)
+  updateMember(user.id, {
     'Postal Adress': message.actions[0].value
   })
   bot.replyInteractive(message, {
