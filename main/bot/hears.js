@@ -218,7 +218,7 @@ const handleAddressSelect = async function(bot, message) {
   const attachments = message.original_message.attachments
   attachments[0].actions = []
   attachments[0].fields = [{
-    'text': `:white_check_mark: Ok, I updated your address to ${message.actions[0].value}`
+    'value': `:white_check_mark: Ok, I updated your address to ${message.actions[0].value}`
   }]
   bot.replyInteractive(message, {attachments})
 }
