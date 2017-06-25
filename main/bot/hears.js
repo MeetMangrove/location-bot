@@ -29,8 +29,8 @@ const giveHelp = function() {
   '!map' for a link to Mangrove Members map!`
 };
 
-const handleError = function(e, bot) {
-  console.log(e)
+export const handleError = function(e, bot) {
+  console.log(e);
   bot.reply(message, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
 }
 
