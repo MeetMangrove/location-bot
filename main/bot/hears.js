@@ -181,7 +181,7 @@ controller.on('interactive_message_callback', async function(bot, message) {
 })
 
 const handleAddressConfirmation = async function(bot, message) {
-  let actions = [];
+  let fields = [];
   if (message.actions[0].value) {
     const slackUser = await getSlackUser(bot, message.user)
     const user = await getMemberBySlackHandler(slackUser.name)
@@ -190,18 +190,20 @@ const handleAddressConfirmation = async function(bot, message) {
     'Postal Adress': message.actions[0].value
     })
 
-    actions.push({
-      text: `:white_check_mark: Address updated!`
+    fields.push({
+      value: `:white_check_mark: Address updated!`
     })
   } else {
-    actions.push({
-      text: `:x: Ping me whenever you want to update your address!`
+    fields.push({
+      value: `:x: Ping me whenever you want to update your address`
     })
   }
 
+  // replace actions with the confirmation text
   const attachments = message.original_message.attachments
-  attachments[0].actions = actions
-  bot.replyInteractive(message, {attachments: attachments})
+  attachments[0].actions = [];
+  attachments[0].fields = fields;
+  bot.replyInteractive(message, {attachments})
 }
 
 const handleAddressSelect = async function(bot, message) {
@@ -210,16 +212,12 @@ const handleAddressSelect = async function(bot, message) {
   updateMember(user.id, {
     'Postal Adress': message.actions[0].value
   })
-  bot.replyInteractive(message, {
-    attachments: [{
-      callback_id: '2',
-      attachment_type: 'default',
-      pretext: `I found multiple matching addresses, please select the correct one!`,
-      actions: [
-        {
-          'text': `:white_check_mark:`
-        }
-      ]
-    }]
-  })
+
+  // replace actions with the confirmation text
+  const attachments = message.original_message.attachments
+  attachments[0].actions = []
+  attachments[0].fields = [{
+    'text': `:white_check_mark:`
+  }]
+  bot.replyInteractive(message, {attachments})
 }
