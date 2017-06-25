@@ -131,20 +131,13 @@ controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot,
     } else {
       const actions = [];
       for (let loc of validatedLocs.slice(0, 5)) {
-        let postalCode;
-        for (let comp of loc.address_components) {
-          if (comp.types.indexOf('postal_code') > -1) {
-            postalCode = comp.postal_code
-          }
-        }
         actions.push({
           name: 'addressSelect',
-          text: postalCode,
+          text: loc.formatted_address.split(',')[1],
           'type': 'button',
           'value': loc.formatted_address
         })
       }
-      console.log(JSON.stringify(validatedLocs.slice(0, 5), null, 4))
       console.log(actions)
       await botReply(message, {
         attachments: [{
