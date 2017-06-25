@@ -131,6 +131,7 @@ controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot,
     } else {
       const actions = [];
       for (let loc of validatedLocs) {
+        console.log(validatedLocs)
         let locality;
         for (let comp of loc.address_components) {
           if (comp.types.indexOf('locality') > -1) {
