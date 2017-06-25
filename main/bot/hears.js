@@ -179,7 +179,7 @@ controller.hears('[^\n]+', ['direct_message', 'direct_mention'], async (bot, mes
 })
 
 // receive an interactive message, and reply with a message that will replace the original
-controller.on('interactive_message_callback', function(bot, message) {
+controller.on('interactive_message_callback', async function(bot, message) {
   console.log(message)
   switch (message.callback_id) {
     // address confirmation
@@ -217,7 +217,7 @@ const handleAddressConfirmation = async function(bot, message) {
   bot.replyInteractive(message, {attachments: attachments})
 }
 
-const handleAddressSelect = function(bot, message) {
+const handleAddressSelect = async function(bot, message) {
   const slackUser = await getSlackUser(bot, message.user)
   const user = await getMemberBySlackHandler(slackUser.name)
   updateMember(user.id, {
