@@ -132,16 +132,16 @@ controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot,
       const actions = [];
       for (let loc of validatedLocs) {
         console.log(validatedLocs)
-        let locality;
+        let postalCode;
         for (let comp of loc.address_components) {
-          if (comp.types.indexOf('locality') > -1) {
-            locality = comp.long_name
+          if (comp.types.indexOf('postal_code') > -1) {
+            postalCode = comp.postal_code
             break
           }
         }
         actions.push({
           name: 'addressSelect',
-          text: locality,
+          text: postalCode,
           'type': 'button',
           'value': loc.formatted_address
         })
@@ -150,7 +150,7 @@ controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot,
         attachments: [{
           callback_id: '2',
           attachment_type: 'default',
-          pretext: `I found multiple matching addresses, please select the correct one!`,
+          pretext: `I found multiple matching addresses, please select the correct postasl code!`,
           actions: actions
         }]
       })
