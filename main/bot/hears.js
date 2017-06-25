@@ -130,7 +130,7 @@ controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot,
       })
     } else {
       const actions = [];
-      for (let loc of validatedLocs.slice(0, 5)) {
+      for (let loc of validatedLocs.slice(0, 10)) {
         actions.push({
           name: 'addressSelect',
           text: loc.formatted_address.split(',')[1],
