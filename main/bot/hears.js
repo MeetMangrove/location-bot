@@ -131,9 +131,16 @@ controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot,
     } else {
       const actions = [];
       for (let loc of validatedLocs) {
+        const locality;
+        for (let comp of loc.address_components) {
+          if (comp.types.indexOf('locality') > -1) {
+            locality = comp.long_name
+            break
+          }
+        }
         actions.push({
           name: 'addressSelect',
-          text: loc.formatted_address,
+          text: locality,
           'type': 'button',
           'value': loc.formatted_address
         })
@@ -217,7 +224,7 @@ const handleAddressSelect = async function(bot, message) {
   const attachments = message.original_message.attachments
   attachments[0].actions = []
   attachments[0].fields = [{
-    'text': `:white_check_mark:`
+    'text': `:white_check_mark: Ok, I updated your address to ${message.actions[0].value}`
   }]
   bot.replyInteractive(message, {attachments})
 }
