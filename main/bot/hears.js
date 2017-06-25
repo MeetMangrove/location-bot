@@ -131,7 +131,6 @@ controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot,
     } else {
       const actions = [];
       for (let loc of validatedLocs.slice(0, 5)) {
-        console.log(validatedLocs)
         let postalCode;
         for (let comp of loc.address_components) {
           if (comp.types.indexOf('postal_code') > -1) {
@@ -146,6 +145,8 @@ controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot,
           'value': loc.formatted_address
         })
       }
+      console.log(validatedLocs.slice(0, 5))
+      console.log(actions)
       await botReply(message, {
         attachments: [{
           callback_id: '2',
