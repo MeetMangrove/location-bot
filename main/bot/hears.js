@@ -145,7 +145,7 @@ controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot,
           'value': loc.formatted_address
         })
       }
-      console.log(validatedLocs.slice(0, 5))
+      console.log(JSON.stringify(validatedLocs.slice(0, 5), null, 4))
       console.log(actions)
       await botReply(message, {
         attachments: [{
