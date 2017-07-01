@@ -221,7 +221,7 @@ controller.on('interactive_message_callback', async function(bot, message) {
 })
 
 const handleAddressConfirmation = async function(bot, message) {
-  let fields = [];
+  const fields = []
 
   // YES
   if (message.actions[0].value) {
@@ -238,23 +238,27 @@ const handleAddressConfirmation = async function(bot, message) {
 
   // replace actions with the confirmation text
   const attachments = message.original_message.attachments
-  attachments[0].actions = [];
-  attachments[0].fields = fields;
+  attachments[0].actions = []
+  attachments[0].fields = fields
   bot.replyInteractive(message, {attachments})
 }
 
 const handleAddressSelect = async function(bot, message) {
-  const slackUser = await getSlackUser(bot, message.user)
-  const user = await getMemberBySlackHandler(slackUser.name)
-  updateMember(user.id, {
-    'Current Location': message.actions[0].value
-  })
+  const fields = []
+  // ADDRESS SELECTED
+  if (message.actions[0].value) {
+    const slackUser = await getSlackUser(bot, message.user)
+    const user = await getMemberBySlackHandler(slackUser.name)
+
+    updateMember(user.id, {'Current Location': message.actions[0].value})
+    fields.push({value: ':white_check_mark: Address updated!'})
+  } else {
+    fields.push({value: ':x: Ping me whenever you want to update your address'})
+  }
 
   // replace actions with the confirmation text
   const attachments = message.original_message.attachments
   attachments[0].actions = []
-  attachments[0].fields = [{
-    'value': `:white_check_mark: Ok, I updated your address to ${message.actions[0].value}`
-  }]
+  attachments[0].fields = fields
   bot.replyInteractive(message, {attachments})
 }
