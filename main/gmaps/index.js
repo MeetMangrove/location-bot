@@ -22,5 +22,5 @@ export const getCityCountry = (gmapsResult) => {
 			country = comp.long_name
 		}
 	}
-	return `${city}, ${country}`
+	return city ? `${city}, ${country}` : country
 }

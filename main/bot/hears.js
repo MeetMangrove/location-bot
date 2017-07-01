@@ -31,12 +31,14 @@ const handleError = function(e, bot) {
 const helpMessage = function(name) {
   return {
     attachments: [{
-      pretext: `Hey ${name}!\n
-                I'm Sally Ride! I'm taking care of keeping everyone's location up to date :boat:\n 
-                Here are the few commands you can use with me :ok_woman:`,
-      text: `"!newloc <city or country>" for me to update your location,
-             "!myloc" if you want to know where I think you are,
-             "!map" for a link to Mangrove Members map!`
+      pretext: `
+Hey ${name}!\n
+I'm Sally Ride! I'm taking care of keeping everyone's location up to date :boat:
+Here are the few commands you can use with me :ok_woman:`,
+      text: `
+"!newloc <city or country>" for me to update your location,
+"!myloc" if you want to know where I think you are,
+"!map" for a link to Mangrove Members map!`
     }]
   }
 }
@@ -158,7 +160,7 @@ controller.hears(['^!myloc'], ['direct_message', 'direct_mention'], async (bot, 
     const slackUser = await getSlackUser(bot, message.user)
     const user = await getMemberBySlackHandler(slackUser.name)
     const botReply = Promise.promisify(bot.reply)
-    if (user.fields['Current Location'].length > 0) {
+    if (user.fields['Current Location']) {
       await botReply(message, mylocMessage(user.fields['Current Location']))
     } else {
       await botReply(message, noLocationForUser())
@@ -189,17 +191,6 @@ controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot,
     } else {
       await botReply(message, locationsConfirmation(validatedLocs.slice(0, 4)))
     }
-  } catch (e) {
-    handleError(e, bot)
-  }
-})
-
-controller.hears(['^Hello', '^Yo', '^Hey', '^Hi', '^Ouch', '^help', '^options$'], ['direct_message', 'direct_mention'], async (bot, message) => {
-  try {
-    const {name} = await getSlackUser(bot, message.user)
-
-    const botReply = Promise.promisify(bot.reply)
-    await botReply(message, helpMessage(name))
   } catch (e) {
     handleError(e, bot)
   }
