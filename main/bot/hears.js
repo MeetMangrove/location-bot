@@ -170,7 +170,7 @@ const locationsConfirmation = function (locations) {
 controller.hears(['^!map'], ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
     const botReply = Promise.promisify(bot.reply)
-    await botReply(message, mapMessage())
+    await botReply(message, await mapMessage())
   } catch (e) {
     handleError(e, bot, message)
   }
