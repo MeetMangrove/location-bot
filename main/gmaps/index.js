@@ -12,3 +12,15 @@ export const validateAddress = async (address) => {
     })
   })
 }
+
+export const getCityCountry = (gmapsResult) => {
+	let city, country;
+	for (const comp of gmapsResult.address_components) {
+		if (comp.types.indexOf('locality') > -1) {
+			city = comp.long_name
+		} else if (comp.types.indexOf('country') > -1) {
+			country = comp.long_name
+		}
+	}
+	return `${city}, ${country}`
+}
