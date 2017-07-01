@@ -5,9 +5,9 @@
 import Promise from 'bluebird'
 
 import {
+  getAllMembers,
   getSlackUser,
   getMemberBySlackHandler,
-  checkIfBuilder,
   updateMember
 } from '../methods'
 import { controller } from './config'
@@ -22,13 +22,13 @@ if (!NODE_ENV) {
   process.exit(1)
 }
 
-const handleError = function(e, bot) {
+const handleError = function (e, bot, message) {
   console.log(e)
   bot.reply(message, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
 }
 
 // Messages Methods
-const helpMessage = function(name) {
+const helpMessage = function (name) {
   return {
     attachments: [{
       pretext: `
@@ -43,19 +43,30 @@ Here are the few commands you can use with me :ok_woman:`,
   }
 }
 
-const goodbye = function() {
+const goodbye = function () {
   return {
     attachments: [{
-      pretext: `I'll be orbiting in my space shuttle if you need me.
-                If you need anything else don't forget the following commands:`,
-      text: `"!newloc <city or country>" for me to update your location,
-             "!myloc" if you want to know where I think you are,
-             "!map" for a link to Mangrove Members map!`
+      pretext: `
+I'll be orbiting in my space shuttle if you need me.
+If you need anything else don't forget the following commands:`,
+      text: `
+"!newloc <city or country>" for me to update your location,
+"!myloc" if you want to know where I think you are,
+"!map" for a link to Mangrove Members map!`
     }]
   }
 }
 
-const mylocMessage = function(address) {
+const mapMessage = async function () {
+  const members = await getAllMembers()
+  const locations = new Set()
+  for (const member of members) {
+    locations.add(member.fields['Current Location'])
+  }
+  return `There are ${members.length} Mangrove friends in ${locations.size} different cities. Say hello to the Mangrove universe:  www.mangrove.io/live-map`
+}
+
+const mylocMessage = function (address) {
   return {
     attachments: [{
       pretext: 'Your location seems to be:',
@@ -65,24 +76,25 @@ const mylocMessage = function(address) {
   }
 }
 
-const noLocationFound = function() {
+const noLocationFound = function () {
   return `Oops, doesn't seem like I'm able to find the place
-    you are talking about, even with the help of my friend Google Maps.\n
-    Maybe try to give me a more complete address?\n
-    Don't worry, I will only save the City and Country ;)`
+you are talking about, even with the help of my friend Google Maps.\n
+Maybe try to give me a more complete address?\n
+Don't worry, I will only save the City and Country ;)`
 }
 
-const noLocationForUser = function() {
+const noLocationForUser = function () {
   return {
     attachments: [{
-      pretext: `It doesn't seem like I have any information about your current location.\n
-                If you want to set your current location, please reply with:`,
+      pretext: `
+It doesn't seem like I have any information about your current location.
+If you want to set your current location, please reply with:`,
       text: '"!newloc <City, Country>"'
     }]
   }
 }
 
-const noLocationGiven = function() {
+const noLocationGiven = function () {
   return {
     attachments: [{
       pretext: 'It seems like you didn\'t give me any address... Please send me something like the following example:',
@@ -91,11 +103,11 @@ const noLocationGiven = function() {
   }
 }
 
-const wrongLocation = function() {
+const wrongLocation = function () {
   return 'My spatial system must be down. Please type "!newloc <City, Country>".'
 }
 
-const locationConfirmation = function(address) {
+const locationConfirmation = function (address) {
   return {
     attachments: [{
       callback_id: 'location_confirmation',
@@ -122,12 +134,12 @@ const locationConfirmation = function(address) {
   }
 }
 
-const locationConfirmed = function() {
+const positiveLocationConfirmation = function () {
   return 'That was easier than finding Earth\'s location in the Milky Way :)'
 }
 
-const locationsConfirmation = function(locations) {
-  const actions = [];
+const locationsConfirmation = function (locations) {
+  const actions = []
   for (const loc of locations) {
     const cityCountry = getCityCountry(loc)
     actions.push({
@@ -155,6 +167,15 @@ const locationsConfirmation = function(locations) {
 }
 
 // User Commands
+controller.hears(['^!map'], ['direct_message', 'direct_mention'], async (bot, message) => {
+  try {
+    const botReply = Promise.promisify(bot.reply)
+    await botReply(message, mapMessage())
+  } catch (e) {
+    handleError(e, bot, message)
+  }
+})
+
 controller.hears(['^!myloc'], ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
     const slackUser = await getSlackUser(bot, message.user)
@@ -166,18 +187,15 @@ controller.hears(['^!myloc'], ['direct_message', 'direct_mention'], async (bot, 
       await botReply(message, noLocationForUser())
     }
   } catch (e) {
-    handleError(e, bot)
+    handleError(e, bot, message)
   }
 })
 
 controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
     const botReply = Promise.promisify(bot.reply)
-
-    const slackUser = await getSlackUser(bot, message.user)
-    const user = await getMemberBySlackHandler(slackUser.name)
-
     const address = message.text.replace('!newloc', '')
+
     if (address.length === 0) {
       await botReply(message, noLocationGiven())
       return
@@ -192,7 +210,7 @@ controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot,
       await botReply(message, locationsConfirmation(validatedLocs.slice(0, 4)))
     }
   } catch (e) {
-    handleError(e, bot)
+    handleError(e, bot, message)
   }
 })
 
@@ -202,12 +220,12 @@ controller.hears('[^\n]+', ['direct_message', 'direct_mention'], async (bot, mes
     const botReply = Promise.promisify(bot.reply)
     await botReply(message, helpMessage(name))
   } catch (e) {
-    handleError(e, bot)
+    handleError(e, bot, message)
   }
 })
 
 // receive an interactive message, and reply with a message that will replace the original
-controller.on('interactive_message_callback', async function(bot, message) {
+controller.on('interactive_message_callback', async function (bot, message) {
   switch (message.callback_id) {
     // address confirmation
     case 'location_confirmation':
@@ -220,7 +238,7 @@ controller.on('interactive_message_callback', async function(bot, message) {
   }
 })
 
-const handleAddressConfirmation = async function(bot, message) {
+const handleAddressConfirmation = async function (bot, message) {
   const fields = []
 
   // YES
@@ -233,7 +251,7 @@ const handleAddressConfirmation = async function(bot, message) {
 
   // NO
   } else {
-    fields.push({value: ':x: Ping me whenever you want to update your address'})
+    fields.push({value: ':x:'})
   }
 
   // replace actions with the confirmation text
@@ -241,9 +259,17 @@ const handleAddressConfirmation = async function(bot, message) {
   attachments[0].actions = []
   attachments[0].fields = fields
   bot.replyInteractive(message, {attachments})
+
+  // YES message follow up
+  if (message.actions[0].value) {
+    addressUpdateFollowUp(bot, message)
+  // NO message follow up
+  } else {
+    addressUpdateFollowUpFail(bot, message)
+  }
 }
 
-const handleAddressSelect = async function(bot, message) {
+const handleAddressSelect = async function (bot, message) {
   const fields = []
   // ADDRESS SELECTED
   if (message.actions[0].value) {
@@ -253,7 +279,7 @@ const handleAddressSelect = async function(bot, message) {
     updateMember(user.id, {'Current Location': message.actions[0].value})
     fields.push({value: ':white_check_mark: Address updated!'})
   } else {
-    fields.push({value: ':x: Ping me whenever you want to update your address'})
+    fields.push({value: ':x:'})
   }
 
   // replace actions with the confirmation text
@@ -261,4 +287,24 @@ const handleAddressSelect = async function(bot, message) {
   attachments[0].actions = []
   attachments[0].fields = fields
   bot.replyInteractive(message, {attachments})
+
+  // YES message follow up
+  if (message.actions[0].value) {
+    addressUpdateFollowUp(bot, message)
+  // NO message follow up
+  } else {
+    addressUpdateFollowUpFail(bot, message)
+  }
+}
+
+const addressUpdateFollowUp = async function (bot, message) {
+  const botReply = Promise.promisify(bot.reply)
+  await botReply(message, positiveLocationConfirmation())
+  await botReply(message, mapMessage())
+  await botReply(message, goodbye())
+}
+
+const addressUpdateFollowUpFail = function (bot, message) {
+  const botReply = Promise.promisify(bot.reply)
+  botReply(message, wrongLocation())
 }
