@@ -303,7 +303,7 @@ const addressUpdateFollowUp = function (bot, message) {
       return handleError(err, bot, message)
     }
     convo.say(positiveLocationConfirmation())
-    convo.say('hello test')
+    convo.say(goodbye())
   })
 }
 
