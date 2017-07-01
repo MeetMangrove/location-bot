@@ -45,7 +45,6 @@ export const getMember = async (id) => {
 
 export const getAllMembers = async () => {
   const members = await _getAllRecords(base(AIRTABLE_MEMBERS).select({
-    maxRecords: 100,
     view: 'Main View'
   }))
   return members
