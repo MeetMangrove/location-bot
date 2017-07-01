@@ -297,14 +297,22 @@ const handleAddressSelect = async function (bot, message) {
   }
 }
 
-const addressUpdateFollowUp = async function (bot, message) {
-  const botReply = Promise.promisify(bot.reply)
-  await botReply(message, positiveLocationConfirmation())
-  await botReply(message, mapMessage())
-  await botReply(message, goodbye())
+const addressUpdateFollowUp = function (bot, message) {
+  bot.startConversation(message, (err, convo) => {
+    if (err) {
+      return handleError(err, bot, message)
+    }
+    convo.say(positiveLocationConfirmation())
+    convo.say(mapMessage())
+    convo.say(goodbye())
+  })
 }
 
 const addressUpdateFollowUpFail = function (bot, message) {
-  const botReply = Promise.promisify(bot.reply)
-  botReply(message, wrongLocation())
+  bot.startConversation(message, (err, convo) => {
+    if (err) {
+      return handleError(err, bot, message)
+    }
+    convo.say(wrongLocation())
+  })
 }
