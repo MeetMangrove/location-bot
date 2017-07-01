@@ -297,14 +297,14 @@ const handleAddressSelect = async function (bot, message) {
   }
 }
 
-const addressUpdateFollowUp = function (bot, message) {
-  bot.startConversation(message, (err, convo) => {
+const addressUpdateFollowUp = async function (bot, message) {
+  bot.startConversation(message, async (err, convo) => {
     if (err) {
       return handleError(err, bot, message)
     }
-    const mapMessage = await mapMessage()
+    const mapMsg = await mapMessage()
     convo.say(positiveLocationConfirmation())
-    convo.say(mapMessage)
+    convo.say(mapMsg)
     convo.say(goodbye())
   })
 }
