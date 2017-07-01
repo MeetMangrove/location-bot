@@ -214,7 +214,7 @@ controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot,
   }
 })
 
-controller.hears('[^\n]+', ['direct_message', 'direct_mention'], async (bot, message) => {
+controller.hears('[^\n]+', '^Hello', '^Yo', '^Hey', '^Hi', '^Ouch', ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
     const {name} = await getSlackUser(bot, message.user)
     const botReply = Promise.promisify(bot.reply)
@@ -303,11 +303,7 @@ const addressUpdateFollowUp = function (bot, message) {
       return handleError(err, bot, message)
     }
     convo.say(positiveLocationConfirmation())
-    convo.next()
-    convo.say(mapMessage())
-    convo.next()
-    convo.say(goodbye())
-    convo.next()
+    convo.say('hello test')
   })
 }
 
