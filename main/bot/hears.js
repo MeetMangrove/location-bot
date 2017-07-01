@@ -7,11 +7,24 @@ import Promise from 'bluebird'
 import {
   getSlackUser,
   getMemberBySlackHandler,
-  checkIfBuilder,
   updateMember
 } from '../methods'
 import { controller } from './config'
-import { validateAddress } from '../gmaps'
+import { getCityCountry, validateAddress } from '../gmaps'
+
+import {
+  helpMessage,
+  goodbye,
+  mapMessage,
+  mylocMessage,
+  noLocationFound,
+  noLocationForUser,
+  noLocationGiven,
+  wrongLocation,
+  locationConfirmation,
+  positiveLocationConfirmation,
+  locationsConfirmation
+} from './messages'
 
 require('dotenv').config()
 
@@ -35,35 +48,12 @@ export const handleError = function(e, bot) {
 }
 
 // User Commands
-controller.hears(['^Hello', '^Yo', '^Hey', '^Hi', '^Ouch'], ['direct_message', 'direct_mention'], async (bot, message) => {
+controller.hears(['^!map'], ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
-    const {name} = await getSlackUser(bot, message.user)
-    bot.startConversation(message, function (err, convo) {
-      if (err) return console.log(err)
-      convo.say(`Hey ${name}!`)
-      convo.say(`I'm Marco Polo! I'm taking care of keeping everyone's location up to date :boat:`)
-      convo.say(`Here are the few commands you can use with me :ok_woman:`)
-      convo.say(giveHelp())
-    })
-  } catch (e) {
-    handleError(e, bot)
-  }
-})
-
-controller.hears(['^help', '^options$'], ['direct_message', 'direct_mention'], async (bot, message) => {
-  try {
-    const {name} = await getSlackUser(bot, message.user)
     const botReply = Promise.promisify(bot.reply)
-    await botReply(message, `Hi ${name}! What can I do for you ? :slightly_smiling_face:`)
-    await botReply(message, {
-      attachments: [{
-        pretext: 'This is what you can ask me:',
-        text: giveHelp(),
-        mrkdwn_in: ['text', 'pretext']
-      }]
-    })
+    await botReply(message, await mapMessage())
   } catch (e) {
-    handleError(e, bot)
+    handleError(e, bot, message)
   }
 })
 
@@ -72,153 +62,139 @@ controller.hears(['^!myloc'], ['direct_message', 'direct_mention'], async (bot, 
     const slackUser = await getSlackUser(bot, message.user)
     const user = await getMemberBySlackHandler(slackUser.name)
     const botReply = Promise.promisify(bot.reply)
-    await botReply(message, {
-      attachments: [{
-        pretext: 'Your location seems to be:',
-        text: user.fields['Postal Adress'],
-        mrkdwn_in: ['text', 'pretext']
-      }]
-    })
+    if (user.fields['Current Location']) {
+      await botReply(message, mylocMessage(user.fields['Current Location']))
+    } else {
+      await botReply(message, noLocationForUser())
+    }
   } catch (e) {
-    handleError(e, bot)
+    handleError(e, bot, message)
   }
 })
 
 controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
     const botReply = Promise.promisify(bot.reply)
-
-    const slackUser = await getSlackUser(bot, message.user)
-    const user = await getMemberBySlackHandler(slackUser.name)
-
     const address = message.text.replace('!newloc', '')
+
     if (address.length === 0) {
-      await botReply(message, {
-        attachments: [{
-          pretext: `It seems like you didn't give me any address... Please send me something like the following example:`,
-          text: `!newloc 123 5th av., New York NY`
-        }]
-      })
+      await botReply(message, noLocationGiven())
       return
     }
 
     const validatedLocs = await validateAddress(address)
-    if (validatedLocs.length === 1) {
-      await botReply(message, {
-        attachments: [{
-          callback_id: '1',
-          attachment_type: 'default',
-          pretext: `I found a matching address, is it correct?`,
-          title: validatedLocs[0].formatted_address,
-          actions: [
-            {
-              'name': 'addressConfirmed',
-              'text': 'Yes',
-              'type': 'button',
-              'value': validatedLocs[0].formatted_address,
-              'style': 'primary'
-            },
-            {
-              'name': 'addressConfirmed',
-              'text': 'No',
-              'type': 'button',
-              'value': false,
-              'style': 'danger'
-            }
-          ]
-        }]
-      })
+    if (validatedLocs.length === 0) {
+      await botReply(message, noLocationFound())
+    } else if (validatedLocs.length === 1) {
+      await botReply(message, locationConfirmation(getCityCountry(validatedLocs[0])))
     } else {
-      const actions = [];
-      for (let loc of validatedLocs.slice(0, 10)) {
-        actions.push({
-          name: 'addressSelect',
-          text: loc.formatted_address.split(',')[1],
-          'type': 'button',
-          'value': loc.formatted_address
-        })
-      }
-      console.log(actions)
-      await botReply(message, {
-        attachments: [{
-          callback_id: '2',
-          attachment_type: 'default',
-          pretext: `I found multiple matching addresses, please select the correct postasl code!`,
-          actions: actions
-        }]
-      })
+      await botReply(message, locationsConfirmation(validatedLocs.slice(0, 4)))
     }
   } catch (e) {
-    handleError(e, bot)
+    handleError(e, bot, message)
   }
 })
 
-controller.hears('[^\n]+', ['direct_message', 'direct_mention'], async (bot, message) => {
+controller.hears('[^\n]+', '^Hello', '^Yo', '^Hey', '^Hi', '^Ouch', ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
     const {name} = await getSlackUser(bot, message.user)
-    bot.startConversation(message, function (err, convo) {
-      if (err) return console.log(err)
-      convo.say(`Sorry ${name}, but I'm too young to understand what you mean :flushed:`)
-      convo.say(`If you need help, just tell me \`help\` :wink:`)
-    })
+    const botReply = Promise.promisify(bot.reply)
+    await botReply(message, helpMessage(name))
   } catch (e) {
-    handleError(e, bot)
+    handleError(e, bot, message)
   }
 })
 
 // receive an interactive message, and reply with a message that will replace the original
-controller.on('interactive_message_callback', async function(bot, message) {
-  console.log(message)
+controller.on('interactive_message_callback', async function (bot, message) {
   switch (message.callback_id) {
     // address confirmation
-    case '1':
+    case 'location_confirmation':
       handleAddressConfirmation(bot, message)
       break
     // address selection
-    case '2':
+    case 'locations_confirmation':
       handleAddressSelect(bot, message)
       break
   }
 })
 
-const handleAddressConfirmation = async function(bot, message) {
-  let fields = [];
+const handleAddressConfirmation = async function (bot, message) {
+  const fields = []
+
+  // YES
   if (message.actions[0].value) {
     const slackUser = await getSlackUser(bot, message.user)
     const user = await getMemberBySlackHandler(slackUser.name)
 
-    updateMember(user.id, {
-    'Postal Adress': message.actions[0].value
-    })
+    updateMember(user.id, {'Current Location': message.actions[0].value})
+    fields.push({value: ':white_check_mark: Address updated!'})
 
-    fields.push({
-      value: `:white_check_mark: Address updated!`
-    })
+  // NO
   } else {
-    fields.push({
-      value: `:x: Ping me whenever you want to update your address`
-    })
+    fields.push({value: ':x:'})
   }
 
   // replace actions with the confirmation text
   const attachments = message.original_message.attachments
-  attachments[0].actions = [];
-  attachments[0].fields = fields;
+  attachments[0].actions = []
+  attachments[0].fields = fields
   bot.replyInteractive(message, {attachments})
+
+  // YES message follow up
+  if (message.actions[0].value) {
+    addressUpdateFollowUp(bot, message)
+  // NO message follow up
+  } else {
+    addressUpdateFollowUpFail(bot, message)
+  }
 }
 
-const handleAddressSelect = async function(bot, message) {
-  const slackUser = await getSlackUser(bot, message.user)
-  const user = await getMemberBySlackHandler(slackUser.name)
-  updateMember(user.id, {
-    'Postal Adress': message.actions[0].value
-  })
+const handleAddressSelect = async function (bot, message) {
+  const fields = []
+  // ADDRESS SELECTED
+  if (message.actions[0].value) {
+    const slackUser = await getSlackUser(bot, message.user)
+    const user = await getMemberBySlackHandler(slackUser.name)
+
+    updateMember(user.id, {'Current Location': message.actions[0].value})
+    fields.push({value: ':white_check_mark: Address updated!'})
+  } else {
+    fields.push({value: ':x:'})
+  }
 
   // replace actions with the confirmation text
   const attachments = message.original_message.attachments
   attachments[0].actions = []
-  attachments[0].fields = [{
-    'value': `:white_check_mark: Ok, I updated your address to ${message.actions[0].value}`
-  }]
+  attachments[0].fields = fields
   bot.replyInteractive(message, {attachments})
+
+  // YES message follow up
+  if (message.actions[0].value) {
+    addressUpdateFollowUp(bot, message)
+  // NO message follow up
+  } else {
+    addressUpdateFollowUpFail(bot, message)
+  }
+}
+
+const addressUpdateFollowUp = async function (bot, message) {
+  bot.startConversation(message, async (err, convo) => {
+    if (err) {
+      return handleError(err, bot, message)
+    }
+    const mapMsg = await mapMessage()
+    convo.say(positiveLocationConfirmation())
+    convo.say(mapMsg)
+    convo.say(goodbye())
+  })
+}
+
+const addressUpdateFollowUpFail = function (bot, message) {
+  bot.startConversation(message, (err, convo) => {
+    if (err) {
+      return handleError(err, bot, message)
+    }
+    convo.say(wrongLocation())
+  })
 }

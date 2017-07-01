@@ -43,6 +43,13 @@ export const getMember = async (id) => {
   return member
 }
 
+export const getAllMembers = async () => {
+  const members = await _getAllRecords(base(AIRTABLE_MEMBERS).select({
+    view: 'Main View'
+  }))
+  return members
+}
+
 // get member by Slack name
 export const getMemberBySlackHandler = async (handle) => {
   const records = await _getAllRecords(base(AIRTABLE_MEMBERS).select({
@@ -55,10 +62,10 @@ export const getMemberBySlackHandler = async (handle) => {
 
 // update member
 export const updateMember = async (id, fields) => {
-  console.log("updating member ", id, fields)
+  console.log('updating member ', id, fields)
   const updateMember = Promise.promisify(base(AIRTABLE_MEMBERS).update)
   const member = await updateMember(id, fields)
-  console.log("updated! ", member)
+  console.log('updated! ', member)
   return member
 }
 
