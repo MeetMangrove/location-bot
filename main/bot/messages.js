@@ -57,11 +57,10 @@ export const goodbye = function () {
   return {
     attachments: [{
       pretext: `
-I'll be orbiting in my space shuttle if you need me.
-If you need anything else don't forget the following commands:`,
+I'll be orbiting in my space shuttle, if you need anything here is what you can ask me:`,
       text: `
-"!newloc <city or country>" for me to update your location,
-"!myloc" if you want to know where I think you are,
+"!newloc <city or country>" to update your location,
+"!myloc" to see where I think you are,
 "!map" for a link to Mangrove Members map!`
     }]
   }
