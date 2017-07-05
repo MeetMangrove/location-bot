@@ -86,11 +86,7 @@ controller.on('rtm_close', () => {
 //   }
 // })
 
-console.log("initializing the bot")
-const bot = controller.spawn({
-  token: SLACK_BOT_TOKEN,
-  incoming_webhook: {url: process.env.SLACK_WEBHOOK_URL}
-}).startRTM((err, bot) => {
+const bot = controller.spawn({token: SLACK_BOT_TOKEN}).startRTM((err, bot) => {
   if (err) return console.log('Error connecting bot to Slack:', err)
   trackBot(bot)
 })

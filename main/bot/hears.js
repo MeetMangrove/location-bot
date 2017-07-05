@@ -35,14 +35,7 @@ if (!NODE_ENV) {
   process.exit(1)
 }
 
-// Helper Methods
-const giveHelp = function() {
-  return `'!newloc <city or country>' for me to update your location,
-  '!myloc' if you want to know where I think you are,
-  '!map' for a link to Mangrove Members map!`
-};
-
-export const handleError = function(e, bot) {
+const handleError = function(e, bot) {
   console.log(e);
   bot.reply(message, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
 }
