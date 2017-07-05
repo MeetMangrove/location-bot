@@ -5,6 +5,4 @@
 import 'newrelic'
 import 'babel-polyfill'
 import './bot/hears'
-//import {sendPrivateMessage} from './bot/lips'
-
-//sendPrivateMessage('U30MX249Z', 'coucou');
+// import './bot/lips'
