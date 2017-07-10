@@ -26,6 +26,8 @@ import {
   locationsConfirmation
 } from './messages'
 
+import tracker from '../tracking'
+
 require('dotenv').config()
 
 const {NODE_ENV} = process.env
@@ -43,6 +45,9 @@ const handleError = function (e, bot, message) {
 // User Commands
 controller.hears(['^!map'], ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
+    tracker.track('user.map', {
+      user: message.user
+    })
     const botReply = Promise.promisify(bot.reply)
     await botReply(message, await mapMessage())
   } catch (e) {
@@ -52,6 +57,9 @@ controller.hears(['^!map'], ['direct_message', 'direct_mention'], async (bot, me
 
 controller.hears(['^!myloc'], ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
+    tracker.track('user.myloc', {
+      user: message.user
+    })
     const slackUser = await getSlackUser(bot, message.user)
     const user = await getMemberBySlackHandler(slackUser.name)
     const botReply = Promise.promisify(bot.reply)
@@ -70,17 +78,40 @@ controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot,
     const botReply = Promise.promisify(bot.reply)
     const address = message.text.replace('!newloc', '')
 
+    tracker.track('user.newloc', {
+      user: message.user,
+      address
+    })
+
     if (address.length === 0) {
+      tracker.track('user.newloc.noloc', {
+        user: message.user,
+        address
+      })
       await botReply(message, noLocationGiven())
       return
     }
 
     const validatedLocs = await validateAddress(address)
     if (validatedLocs.length === 0) {
+      tracker.track('user.newloc.notfound', {
+        user: message.user,
+        address
+      })
       await botReply(message, noLocationFound())
     } else if (validatedLocs.length === 1) {
+      tracker.track('user.newloc.onefound', {
+        user: message.user,
+        address,
+        validatedLocs
+      })
       await botReply(message, locationConfirmation(getCityCountry(validatedLocs[0])))
     } else {
+      tracker.track('user.newloc.mulitplefound', {
+        user: message.user,
+        address,
+        validatedLocs
+      })
       await botReply(message, locationsConfirmation(validatedLocs.slice(0, 4)))
     }
   } catch (e) {
@@ -88,8 +119,12 @@ controller.hears(['^!newloc'], ['direct_message', 'direct_mention'], async (bot,
   }
 })
 
-controller.hears('[^\n]+', '^Hello', '^Yo', '^Hey', '^Hi', '^Ouch', ['direct_message', 'direct_mention'], async (bot, message) => {
+controller.hears(['[^\n]+', '^Hello', '^Yo', '^Hey', '^Hi', '^Ouch'], ['direct_message', 'direct_mention'], async (bot, message) => {
   try {
+    tracker.track('user.hello', {
+      user: message.user,
+      text: message.text
+    })
     const {name} = await getSlackUser(bot, message.user)
     const botReply = Promise.promisify(bot.reply)
     await botReply(message, helpMessage(name))
@@ -117,6 +152,9 @@ const handleAddressConfirmation = async function (bot, message) {
 
   // YES
   if (message.actions[0].value) {
+    tracker.track('user.address.confirmation.yes', {
+      user: message.user
+    })
     const slackUser = await getSlackUser(bot, message.user)
     const user = await getMemberBySlackHandler(slackUser.name)
 
@@ -125,6 +163,9 @@ const handleAddressConfirmation = async function (bot, message) {
 
   // NO
   } else {
+    tracker.track('user.address.confirmation.no', {
+      user: message.user
+    })
     fields.push({value: ':x:'})
   }
 
@@ -147,12 +188,19 @@ const handleAddressSelect = async function (bot, message) {
   const fields = []
   // ADDRESS SELECTED
   if (message.actions[0].value) {
+    tracker.track('user.address.confirmations.select', {
+      user: message.user
+    })
     const slackUser = await getSlackUser(bot, message.user)
     const user = await getMemberBySlackHandler(slackUser.name)
 
     updateMember(user.id, {'Current Location': message.actions[0].value})
     fields.push({value: ':white_check_mark: Address updated!'})
+  // NO ADDRESS SELECTED
   } else {
+    tracker.track('user.address.confirmations.no', {
+      user: message.user
+    })
     fields.push({value: ':x:'})
   }
 
