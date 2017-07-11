@@ -36,9 +36,6 @@ Events we track are:
 `bot.spam.usernotfound`: when slack user is not found in Airtable
 `bot.spam.message': message is initiated
 
-### Heroku scheduler job  
-
-
 ### Installation
 
 Clone the repo, then run:
