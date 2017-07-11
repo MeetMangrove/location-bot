@@ -33,6 +33,11 @@ Events we track are:
 `user.address.confirmations.no`: user rejected all found addresses  
 
 `bot.*`: events initiated by the bot  
+`bot.spam.usernotfound`: when slack user is not found in Airtable
+`bot.spam.message': message is initiated
+
+### Heroku scheduler job  
+
 
 ### Installation
 

@@ -5,6 +5,8 @@ import { handleError } from './hears'
 import { pingMessage, pingMessageNoLocation } from './messages'
 import { getMemberBySlackHandler } from '../methods'
 
+import tracker from '../tracking'
+
 /* sendPrivateMessage take a slackId and a message and send the message to slackId
  *
  * slackId can be a channel or a user
@@ -28,6 +30,10 @@ export const spamEveryone = async function() {
     for (const member of response.members) {
       const airtableUser = await getMemberBySlackHandler(member.name)
       if (!airtableUser) {
+        tracker.track('bot.spam.usernotfound', {
+          user: member.id,
+          name: member.name
+        })
         console.log(`member with handle ${member.name} not found in airtable`)
         continue
       }
@@ -40,6 +46,10 @@ export const spamEveryone = async function() {
         message = pingMessageNoLocation(member.name)
       }
 
+      tracker.track('bot.spam.message', {
+        user: member.id,
+        hasLocation: !!currentLocation
+      })
       sendPrivateMessage(member.id, message)
     }
   })
