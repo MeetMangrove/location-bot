@@ -34,7 +34,7 @@ Events we track are:
 
 `bot.*`: events initiated by the bot  
 `bot.spam.usernotfound`: when slack user is not found in Airtable
-`bot.spam.message': message is initiated
+`bot.spam.message`: message is initiated
 
 ### Installation
 
