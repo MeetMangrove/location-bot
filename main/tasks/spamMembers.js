@@ -7,9 +7,10 @@ const sendPrivateMessage = function(slackId, message) {
       console.log('in function')
       convo.say(message)
     })
+    resolve()
   })
 }
 
 console.log("sending message to Jonathan")
-sendPrivateMessage('U30MX249Z', 'hello Jon!').then(process.exit(0));
+sendPrivateMessage('U30MX249Z', 'hello Jon!').then(() => process.exit(0));
 
