@@ -13,6 +13,17 @@ Users can also proactively update their location simply by talking 1:1 to @sally
 
 ## Usages
 
+### Spam Everyone
+🔥⛔ This is DANGER ⛔🔥  
+There is a cron job running every X that will make Sally send a message to every Slack members to ask them if the current location she has on file is valid and ask them to update their location if not.  
+
+This can also be ran manually, by logging into a heroku process and run the tasks;
+```bash
+$ heroku run bash
+$ npm run spamEveryone
+```
+Because this will run in a separate process (one-off dyno), it initiates a new bot instance - Make sure to ctrl+c out of the process once the tasks is done, or else it will leave a clone of Sally, and users will receive duplicated responses when talking to her.
+
 ### Tracking
 
 We track events through Mixpanel. Ping @jauny to get access.
