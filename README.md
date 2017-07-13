@@ -47,6 +47,8 @@ Events we track are:
 `bot.spam.usernotfound`: when slack user is not found in Airtable
 `bot.spam.message`: message is initiated
 
+`admin.spamEveryone`: admin ran the "spamEveryone" task manually
+
 ### Installation
 
 Clone the repo, then run:
