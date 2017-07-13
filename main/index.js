@@ -5,4 +5,4 @@
 import 'newrelic'
 import 'babel-polyfill'
 import './bot/hears'
-// import './bot/lips'
+import './bot/lips'
