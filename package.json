@@ -8,7 +8,8 @@
     "build": "babel main -d dist",
     "serve": "node dist/index.js",
     "web": "babel main -d dist; node --optimize_for_size --max_old_space_size=240 --gc_interval=100 dist/index.js ",
-    "test": "mocha; exit 0"
+    "test": "mocha; exit 0",
+    "spamMembers": "node dist/tasks/spamMembers.js"
   },
   "engines": {
     "node": "7.7.3"
