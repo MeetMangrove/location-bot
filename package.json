@@ -8,7 +8,8 @@
     "build": "babel main -d dist",
     "serve": "node dist/index.js",
     "web": "babel main -d dist; node --optimize_for_size --max_old_space_size=240 --gc_interval=100 dist/index.js ",
-    "test": "mocha; exit 0"
+    "test": "mocha; exit 0",
+    "spamEveryone": "babel-node main/tasks/spam-everyone.js"
   },
   "engines": {
     "node": "7.7.3"
@@ -24,6 +25,7 @@
     "bluebird": "^3.5.0",
     "botkit": "^0.5.4",
     "botkit-storage-mongo": "1.0.6",
+    "cron": "^1.2.1",
     "dotenv": "4.0.0",
     "keen-tracking": "^1.1.3",
     "lodash": "^4.17.4",

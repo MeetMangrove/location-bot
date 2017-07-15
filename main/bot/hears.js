@@ -37,8 +37,7 @@ if (!NODE_ENV) {
   process.exit(1)
 }
 
-const handleError = function (e, bot, message) {
-  console.log(e)
+export const handleError = function (e, bot) {
   bot.reply(message, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
 }
 
@@ -159,7 +158,7 @@ const handleAddressConfirmation = async function (bot, message) {
     const user = await getMemberBySlackHandler(slackUser.name)
 
     updateMember(user.id, {'Current Location': message.actions[0].value})
-    fields.push({value: ':white_check_mark: Address updated!'})
+    fields.push({value: ':white_check_mark:'})
 
   // NO
   } else {
@@ -195,8 +194,7 @@ const handleAddressSelect = async function (bot, message) {
     const user = await getMemberBySlackHandler(slackUser.name)
 
     updateMember(user.id, {'Current Location': message.actions[0].value})
-    fields.push({value: ':white_check_mark: Address updated!'})
-  // NO ADDRESS SELECTED
+    fields.push({value: ':white_check_mark:'})
   } else {
     tracker.track('user.address.confirmations.no', {
       user: message.user

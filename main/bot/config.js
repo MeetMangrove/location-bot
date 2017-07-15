@@ -85,9 +85,10 @@ controller.on('rtm_close', () => {
 //     }
 //   }
 // })
-controller.spawn({token: SLACK_BOT_TOKEN}).startRTM((err, bot) => {
+
+const bot = controller.spawn({token: SLACK_BOT_TOKEN}).startRTM((err, bot) => {
   if (err) return console.log('Error connecting bot to Slack:', err)
   trackBot(bot)
 })
 
-export { controller }
+export { controller, bot }

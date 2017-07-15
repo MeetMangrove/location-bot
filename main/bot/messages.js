@@ -2,6 +2,42 @@ import { getAllMembers } from '../methods'
 import { getCityCountry } from '../gmaps'
 
 // Messages Methods
+export const pingMessage = function (name, address) {
+  return {
+    attachments: [{
+      callback_id: 'location_confirmation',
+      attachment_type: 'default',
+      pretext: `
+Hey ${name.replace(/\b\w/g, l => l.toUpperCase())}!
+I'm Sally Ride. I'm keeping track of everyone's location. Right now I have ${address} as your current location.
+Is that correct?`,
+      actions: [
+        {
+          'name': 'addressConfirmed',
+          'text': 'Yes',
+          'type': 'button',
+          'value': address,
+          'style': 'primary'
+        },
+        {
+          'name': 'addressConfirmed',
+          'text': 'No',
+          'type': 'button',
+          'value': false,
+          'style': 'danger'
+        }
+      ]
+      
+    }]
+  }
+}
+
+export const pingMessageNoLocation = function (name) {
+  return `Hey ${name.replace(/\b\w/g, l => l.toUpperCase())}!
+I'm Sally Ride. I'm keeping track of everyone's location. Right now I don't know where you are.
+Please type "!newloc <City, Country>" to update your location!`;
+}
+
 export const helpMessage = function (name) {
   return {
     attachments: [{
@@ -21,11 +57,10 @@ export const goodbye = function () {
   return {
     attachments: [{
       pretext: `
-I'll be orbiting in my space shuttle if you need me.
-If you need anything else don't forget the following commands:`,
+I'll be orbiting in my space shuttle, if you need anything here is what you can ask me:`,
       text: `
-"!newloc <city or country>" for me to update your location,
-"!myloc" if you want to know where I think you are,
+"!newloc <city or country>" to update your location,
+"!myloc" to see where I think you are,
 "!map" for a link to Mangrove Members map!`
     }]
   }
@@ -37,7 +72,7 @@ export const mapMessage = async function () {
   for (const member of members) {
     locations.add(member.fields['Current Location'])
   }
-  return `There are ${members.length} Mangrove friends in ${locations.size} different cities. Say hello to the Mangrove universe:  www.mangrove.io/live-map`
+  return `There are *${members.length} Mangrove friends* in *${locations.size} different cities*. Say hello to the Mangrove universe:  www.mangrove.io/live-map`
 }
 
 export const mylocMessage = function (address) {
@@ -78,7 +113,7 @@ export const noLocationGiven = function () {
 }
 
 export const wrongLocation = function () {
-  return 'My spatial system must be down. Please type "!newloc <City, Country>".'
+  return 'My spatial system must be down. Please type "!newloc <City, Country>" to update your current location.'
 }
 
 export const locationConfirmation = function (address) {
