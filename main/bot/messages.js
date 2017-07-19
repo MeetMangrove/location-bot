@@ -27,7 +27,6 @@ Is that correct?`,
           'style': 'danger'
         }
       ]
-      
     }]
   }
 }
@@ -35,7 +34,7 @@ Is that correct?`,
 export const pingMessageNoLocation = function (name) {
   return `Hey ${name.replace(/\b\w/g, l => l.toUpperCase())}!
 I'm Sally Ride. I'm keeping track of everyone's location. Right now I don't know where you are.
-Please type "!newloc <City, Country>" to update your location!`;
+Please type "!newloc <City, Country>" to update your location!`
 }
 
 export const helpMessage = function (name) {
