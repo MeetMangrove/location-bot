@@ -37,7 +37,7 @@ if (!NODE_ENV) {
   process.exit(1)
 }
 
-export const handleError = function (e, bot) {
+export const handleError = function (e, bot, message) {
   bot.reply(message, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
 }
 

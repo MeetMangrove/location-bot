@@ -1,7 +1,6 @@
 import { CronJob } from 'cron'
 
 import { bot } from './config'
-import { handleError } from './hears'
 import { pingMessage, pingMessageNoLocation } from './messages'
 import { getMemberBySlackHandler } from '../methods'
 
@@ -12,7 +11,7 @@ import tracker from '../tracking'
  * slackId can be a channel or a user
  * message is a string or a slack message object
  */
-export const sendPrivateMessage = function(slackId, message) {
+export const sendPrivateMessage = function (slackId, message) {
   bot.startPrivateConversation({user: slackId}, (err, convo) => {
     if (err) return console.error(err)
     convo.say(message)
@@ -23,7 +22,7 @@ export const sendPrivateMessage = function(slackId, message) {
  *
  * message is a string
  */
-export const spamEveryone = async function() {
+export const spamEveryone = async function () {
   bot.api.users.list({}, async (err, response) => {
     if (err) return console.error(err)
 
@@ -38,7 +37,7 @@ export const spamEveryone = async function() {
         continue
       }
 
-      let message;
+      let message
       const currentLocation = airtableUser.fields['Current Location']
       if (currentLocation) {
         message = pingMessage(member.name, currentLocation)
@@ -55,11 +54,10 @@ export const spamEveryone = async function() {
   })
 }
 
-// Start the cron job
-// commented for safety!
-// new CronJob({
-//   cronTime: '0 49 * * * *',
-//   onTick: spamEveryone,
-//   start: true,
-//   timeZone: 'Europe/Amsterdam'
-// });
+// Run the spamEveryone method every 2nd of the month
+const job = new CronJob({
+  cronTime: '0 0 2 * * *',
+  onTick: spamEveryone,
+  timeZone: 'Europe/Amsterdam'
+})
+job.start()
