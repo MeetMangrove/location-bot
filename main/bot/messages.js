@@ -71,7 +71,7 @@ export const mapMessage = async function () {
   for (const member of members) {
     locations.add(member.fields['Current Location'])
   }
-  return `There are *${members.length} Mangrove friends* in *${locations.size} different cities*. Say hello to the Mangrove universe:  www.mangrove.io/live-map`
+  return `There are *${members.length} Mangrove friends* in *${locations.size} different cities*. Say hello to the Mangrove universe:  www.mangrove.io/team`
 }
 
 export const mylocMessage = function (address) {
