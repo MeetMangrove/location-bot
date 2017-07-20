@@ -56,7 +56,7 @@ export const spamEveryone = async function () {
 
 // Run the spamEveryone method every 2nd of the month
 const job = new CronJob({
-  cronTime: '0 0 2 * * *',
+  cronTime: '0 0 0 2 * *',
   onTick: spamEveryone,
   timeZone: 'Europe/Amsterdam'
 })
